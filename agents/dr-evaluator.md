@@ -1,7 +1,9 @@
 ---
 name: dr-evaluator
 description: Evaluates research quality against binary criteria. Used by /dr:improve.
-tools: Read, Grep, Glob, Bash
+disallowedTools:
+  - Write
+  - Edit
 model: sonnet
 ---
 

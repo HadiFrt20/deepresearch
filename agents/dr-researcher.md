@@ -1,7 +1,8 @@
 ---
 name: dr-researcher
 description: Executes a single research micro-task with structured output. Spawned by /dr:run.
-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
+disallowedTools:
+  - Edit
 model: sonnet
 ---
 

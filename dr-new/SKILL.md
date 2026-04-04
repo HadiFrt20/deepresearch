@@ -166,7 +166,21 @@ Each task should:
 
 ### File 9: `.claude/agents/dr-researcher.md`
 
-Project-local researcher subagent. ADAPT INSTRUCTIONS BASED ON A7:
+Project-local researcher subagent.
+
+IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `tools` (allowlist). An allowlist blocks MCP tools like Firecrawl, Linkup, and Tavily from being inherited. Use this frontmatter:
+
+```yaml
+---
+name: dr-researcher
+description: Executes a single research micro-task with structured output. Spawned by /dr:run.
+disallowedTools:
+  - Edit
+model: sonnet
+---
+```
+
+ADAPT INSTRUCTIONS BASED ON A7:
 - Native (a): "Search using WebSearch with at least 3 queries. Use WebFetch to read full pages."
 - Firecrawl (b): "Use Firecrawl search for discovery. Use Firecrawl scrape for specific URLs. Use Firecrawl crawl to map entire sites. Fall back to WebFetch if Firecrawl errors."
 - Linkup (c): "Use Linkup search for structured results. Fall back to WebFetch for direct page access."
@@ -176,6 +190,19 @@ Project-local researcher subagent. ADAPT INSTRUCTIONS BASED ON A7:
 ### File 10: `.claude/agents/dr-evaluator.md`
 
 Project-local evaluator subagent. Copy the default evaluator from the installed agents.
+
+IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `tools` (allowlist). An allowlist blocks MCP tools from being inherited. Use this frontmatter:
+
+```yaml
+---
+name: dr-evaluator
+description: Evaluates research quality against binary criteria. Used by /dr:improve.
+disallowedTools:
+  - Write
+  - Edit
+model: sonnet
+---
+```
 
 ### File 11: `prompts/` directory
 
