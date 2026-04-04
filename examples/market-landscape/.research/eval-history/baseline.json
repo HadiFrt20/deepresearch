@@ -4,6 +4,7 @@
   "overall_pass_rate": 0.68,
   "total_entries": 25,
   "entries_passing_all": 17,
+  "sample_size": 3,
   "per_criterion": {
     "has_all_required_fields": 0.88,
     "has_source_url": 0.96,

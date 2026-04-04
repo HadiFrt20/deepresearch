@@ -5,7 +5,7 @@ Autonomous multi-session research for Claude Code.
 ## Install
 
 ```bash
-git clone https://github.com/hadifrt20/deepresearch.git ~/.claude/skills/deepresearch
+git clone https://github.com/HadiFrt20/deepresearch.git ~/.claude/skills/deepresearch
 cd ~/.claude/skills/deepresearch && ./setup
 ```
 

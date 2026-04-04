@@ -2,20 +2,24 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILLS_DIR="$(dirname "$SCRIPT_DIR")"
+SKILLS_DIR="$HOME/.claude/skills"
 AGENTS_DIR="$HOME/.claude/agents"
 
-mkdir -p "$AGENTS_DIR"
+mkdir -p "$SKILLS_DIR" "$AGENTS_DIR"
 
-echo "Installing deepresearch skills..."
-echo ""
+# Warn if not in expected location
+if [[ "$SCRIPT_DIR" != "$SKILLS_DIR/deepresearch" ]]; then
+    echo "Note: repo is at $SCRIPT_DIR"
+    echo "      expected ~/.claude/skills/deepresearch"
+    echo "      Skills will still be installed to ~/.claude/skills/ via symlinks."
+    echo ""
+fi
 
-# Symlink each skill directory so Claude Code sees /dr:new, /dr:run, etc.
+# Symlink each skill directory
 for skill in dr-new dr-run dr-status dr-review dr-resume dr-report dr-improve; do
-    target="$SKILLS_DIR/$skill"
-    rm -f "$target" 2>/dev/null || true
-    ln -sf "$SCRIPT_DIR/$skill" "$target"
-    echo "  ✓ /$(echo $skill | sed 's/-/:/')"
+    rm -rf "$SKILLS_DIR/$skill" 2>/dev/null || true
+    ln -sf "$SCRIPT_DIR/$skill" "$SKILLS_DIR/$skill"
+    echo "  ✓ /$skill"
 done
 
 # Symlink agents
@@ -26,13 +30,5 @@ for agent in dr-researcher.md dr-evaluator.md; do
 done
 
 echo ""
-echo "deepresearch installed. Open a new Claude Code session and type /dr: to see commands."
-echo ""
-echo "Available commands:"
-echo "  /dr:new      — set up a new research project"
-echo "  /dr:run      — execute research tasks autonomously"
-echo "  /dr:status   — progress dashboard"
-echo "  /dr:review   — validate data quality"
-echo "  /dr:resume   — resume after crash or new session"
-echo "  /dr:report   — synthesize final deliverable"
-echo "  /dr:improve  — self-improvement loop for research quality"
+echo "deepresearch installed (7 skills, 2 agents)."
+echo "Open a new Claude Code session and type /dr: to see commands."
