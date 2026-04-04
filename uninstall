@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILLS_DIR="$(dirname "$SCRIPT_DIR")"
+AGENTS_DIR="$HOME/.claude/agents"
+
+echo "Uninstalling deepresearch..."
+
+for skill in dr-new dr-run dr-status dr-review dr-resume dr-report dr-improve; do
+    rm -f "$SKILLS_DIR/$skill" 2>/dev/null
+done
+
+for agent in dr-researcher.md dr-evaluator.md; do
+    rm -f "$AGENTS_DIR/$agent" 2>/dev/null
+done
+
+echo "deepresearch uninstalled. Skills and agents removed."
+echo "The repo at ~/.claude/skills/deepresearch/ is still there. Remove it with:"
+echo "  rm -rf ~/.claude/skills/deepresearch"

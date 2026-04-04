@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Artisan AI",
+    "category": "AI SDR",
+    "website": "https://artisan.co",
+    "description": "AI-powered BDR agent that automates outbound prospecting and personalized email sequences",
+    "founded_year": 2023,
+    "headquarters": "San Francisco, CA",
+    "employee_count": "UNVERIFIED: 45",
+    "funding_total": "$12M",
+    "funding_stage": "Series A",
+    "key_investors": ["Y Combinator", "Sequoia Scout"],
+    "pricing_model": "per-seat",
+    "key_features": ["AI email personalization", "Lead research automation", "Multi-channel sequences", "CRM integration"],
+    "target_market": "SMB and mid-market",
+    "notable_customers": ["NOT_FOUND"],
+    "differentiator": "Full-stack AI employee replacement vs point solution",
+    "sources": [
+      "https://artisan.co",
+      "https://www.crunchbase.com/organization/artisan-ai",
+      "https://techcrunch.com/2024/artisan-ai-funding"
+    ],
+    "status": "COMPLETE",
+    "last_updated": "2026-03-15"
+  },
+  {
+    "name": "Regie.ai",
+    "category": "Email Automation",
+    "website": "https://regie.ai",
+    "description": "AI content generation platform for sales teams",
+    "founded_year": 2020,
+    "headquarters": "San Francisco, CA",
+    "employee_count": "CONFLICTING: 80 vs 120",
+    "funding_total": "CONFLICTING: $30M vs $35M",
+    "funding_stage": "Series A",
+    "key_investors": ["Scale Venture Partners", "Foundation Capital"],
+    "pricing_model": "NOT_FOUND",
+    "key_features": ["AI email generation", "Sequence optimization", "A/B testing", "CRM sync"],
+    "target_market": "mid-market and enterprise",
+    "notable_customers": ["NOT_FOUND"],
+    "differentiator": "NOT_FOUND",
+    "sources": [
+      "https://regie.ai",
+      "https://www.crunchbase.com/organization/regie-ai"
+    ],
+    "status": "INCOMPLETE",
+    "last_updated": "2026-03-15"
+  },
+  {
+    "name": "Orum",
+    "category": "Call Automation",
+    "website": "https://orum.com",
+    "description": "AI-powered parallel dialer and live conversation intelligence for sales teams",
+    "founded_year": 2018,
+    "headquarters": "NOT_FOUND",
+    "employee_count": "UNVERIFIED: 60",
+    "funding_total": "$UNVERIFIED: 28M",
+    "funding_stage": "Series B",
+    "key_investors": ["NOT_FOUND"],
+    "pricing_model": "per-seat",
+    "key_features": ["AI parallel dialing", "Live call coaching", "Voicemail drop", "Call analytics"],
+    "target_market": "mid-market",
+    "notable_customers": ["NOT_FOUND"],
+    "differentiator": "Parallel dialing with AI — connects reps only when a human answers",
+    "sources": [
+      "https://orum.com"
+    ],
+    "status": "INCOMPLETE",
+    "last_updated": "2026-03-15"
+  }
+]

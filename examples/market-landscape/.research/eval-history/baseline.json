@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-03-15T10:30:00Z",
+  "iteration": 0,
+  "overall_pass_rate": 0.68,
+  "total_entries": 25,
+  "entries_passing_all": 17,
+  "per_criterion": {
+    "has_all_required_fields": 0.88,
+    "has_source_url": 0.96,
+    "valid_status": 1.0,
+    "claims_sourced": 0.60,
+    "own_website_in_sources": 0.52,
+    "has_category": 0.92,
+    "has_description": 0.84,
+    "funding_consistency": 0.76
+  }
+}
