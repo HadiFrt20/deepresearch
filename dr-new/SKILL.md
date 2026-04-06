@@ -1,13 +1,13 @@
 ---
 name: dr-new
-description: Set up a new autonomous research project. Interviews you with 7 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
+description: Set up a new autonomous research project. Interviews you with 8 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
 ---
 
 You are setting up an autonomous multi-session research project. Interview the user, then generate every file needed to run the research autonomously for hours.
 
 ## PHASE A: Interview
 
-Ask one question at a time. Wait for the answer before asking the next.
+Ask one question at a time. Wait for the answer before asking the next. There are 8 questions total.
 
 **A1 — Mission:** What are you researching? What specific question are you trying to answer?
 
@@ -30,9 +30,17 @@ Ask one question at a time. Wait for the answer before asking the next.
 
 Tell the user: "If you're not sure, pick (a). You can always add tools later by editing the Tool priority section in CLAUDE.md."
 
+**A8 — Execution mode:** How should /dr:run execute tasks by default?
+  a) Sequential (recommended for first run) — one task at a time
+  b) Sequential + auto-improve — after each phase, auto-run /dr:improve before the next phase
+  c) Parallel batches — up to 5 tasks in parallel within a phase (requires dependency analysis first)
+  d) Parallel + auto-improve — parallel within phase + auto-improve at phase boundaries
+
+Tell the user: "If unsure, pick (a). You can override per-run with: /dr:run sequential, /dr:run parallel, /dr:run parallel-auto-improve, etc."
+
 ## PHASE B: Generate Project Scaffold
 
-After all 7 answers, generate these files without asking more questions:
+After all 8 answers, generate these files without asking more questions:
 
 ### File 1: `.research/PROJECT.md`
 
@@ -116,6 +124,26 @@ Make it executable.
 Execution protocol containing:
 
 **Mission** — 1 paragraph from PROJECT.md
+
+**Execution Mode** — Add this section near the top, right after Mission:
+
+```
+## Execution Mode
+
+Default mode: {A8_ANSWER — one of: sequential, sequential-auto-improve, parallel, parallel-auto-improve}
+
+Supported modes:
+- `sequential` — one task at a time, safest, easiest to debug
+- `sequential-auto-improve` — sequential + /dr:improve runs automatically at each phase boundary
+- `parallel` — batches of 5 tasks in parallel within a phase; phase boundaries remain sequential; requires dependency analysis
+- `parallel-auto-improve` — parallel + auto-improve at phase boundaries
+
+Runtime override: user can say "run in parallel mode" or pass /dr:run parallel at any time.
+
+Parallel mode safety: before first parallel run in a project, /dr:run spawns a dr-planner subagent to analyze task dependencies and flag any conflicts. If the plan is unsafe, user is asked to write dependency annotations in todo.md before proceeding.
+```
+
+Map A8 answers to mode names: (a) → sequential, (b) → sequential-auto-improve, (c) → parallel, (d) → parallel-auto-improve.
 
 **Bootstrap** — "Read these files first: .research/ROADMAP.md, todo.md, .research/CHANGELOG.md"
 

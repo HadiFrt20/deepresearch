@@ -12,7 +12,7 @@ cd ~/.claude/skills/deepresearch && ./setup
 ## Quick start
 
 ```
-/dr:new        — answer 7 questions, get a full project scaffold
+/dr:new        — answer 8 questions, get a full project scaffold
 /dr:run        — autonomous execution (hours, not minutes)
 /dr:status     — progress dashboard
 /dr:review     — validate data quality
@@ -20,6 +20,37 @@ cd ~/.claude/skills/deepresearch && ./setup
 /dr:improve    — self-improving research loop
 /dr:report     — synthesize findings
 ```
+
+## Execution modes
+
+By default, /dr:run executes tasks sequentially. You can change this.
+
+During /dr:new, you pick a default mode (sequential, sequential-auto-improve, parallel, parallel-auto-improve).
+
+Override at runtime:
+- `/dr:run`                        — uses the project default
+- `/dr:run sequential`             — one task at a time
+- `/dr:run sequential-auto-improve` — sequential + auto-improve at phase boundaries
+- `/dr:run parallel`               — batches of 5 within a phase (requires dependency analysis first)
+- `/dr:run parallel-auto-improve`  — parallel + auto-improve at phase boundaries
+
+### Dependency analysis for parallel mode
+
+Before the first parallel run in a project, /dr:run spawns a dr-planner subagent
+that reads todo.md, ROADMAP.md, and ARCHITECTURE.md to classify each task as
+SAFE, RISKY, BLOCKING, or CROSS-PHASE. It writes `.research/parallel-plan.md` with
+a recommendation (parallelize fully, partial, sequential only, or mixed). You
+review the plan, then re-run `/dr:run parallel` to proceed.
+
+This prevents race conditions on shared output files and ensures tasks that
+depend on each other don't run simultaneously.
+
+### Auto-improve at phase boundaries
+
+In the auto-improve modes, /dr:run automatically runs the /dr:improve ratchet
+between phases: score current phase data, analyze failures, mutate researcher,
+re-run sample, keep or revert. The next phase starts with the improved
+researcher. All version history is saved to `.research/eval-history/`.
 
 ## Why this exists
 
@@ -47,8 +78,8 @@ The researcher subagent's instructions are the trainable parameter. Eval pass ra
 
 | Command | What it does |
 |---------|-------------|
-| `/dr:new` | Interview (7 questions) then generate full project scaffold |
-| `/dr:run` | Execute tasks autonomously until phase complete or stop condition |
+| `/dr:new` | Interview (8 questions) then generate full project scaffold |
+| `/dr:run` | Execute tasks autonomously (supports sequential, parallel, auto-improve modes) |
 | `/dr:status` | Dashboard: task counts, phase status, data completeness |
 | `/dr:review` | Audit data quality against schemas |
 | `/dr:resume` | Find where you left off and continue |
@@ -82,13 +113,15 @@ your-project/
 │   ├── CHANGELOG.md                   # append-only execution log
 │   ├── evals.md                       # binary eval criteria
 │   ├── verify.sh                      # progress verification script
+│   ├── parallel-plan.md               # dependency analysis (parallel mode)
 │   └── eval-history/
 │       ├── baseline.json              # initial eval scores
 │       ├── iteration-1.json           # scores after improvement
 │       └── researcher-v1.md           # researcher version history
 ├── .claude/agents/
 │   ├── dr-researcher.md               # project-local researcher
-│   └── dr-evaluator.md                # project-local evaluator
+│   ├── dr-evaluator.md                # project-local evaluator
+│   └── dr-planner.md                  # dependency analysis (parallel mode)
 ├── prompts/
 │   └── session-*.md                   # per-session prompts
 ├── data/

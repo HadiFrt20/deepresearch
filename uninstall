@@ -8,7 +8,7 @@ for skill in dr-new dr-run dr-status dr-review dr-resume dr-report dr-improve; d
     rm -rf "$SKILLS_DIR/$skill" 2>/dev/null || true
 done
 
-for agent in dr-researcher.md dr-evaluator.md; do
+for agent in dr-researcher.md dr-evaluator.md dr-planner.md; do
     rm -f "$AGENTS_DIR/$agent" 2>/dev/null || true
 done
 

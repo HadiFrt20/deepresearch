@@ -23,12 +23,12 @@ for skill in dr-new dr-run dr-status dr-review dr-resume dr-report dr-improve; d
 done
 
 # Symlink agents
-for agent in dr-researcher.md dr-evaluator.md; do
+for agent in dr-researcher.md dr-evaluator.md dr-planner.md; do
     rm -f "$AGENTS_DIR/$agent" 2>/dev/null || true
     ln -sf "$SCRIPT_DIR/agents/$agent" "$AGENTS_DIR/$agent"
     echo "  ✓ agent: $agent"
 done
 
 echo ""
-echo "deepresearch installed (7 skills, 2 agents)."
+echo "deepresearch installed (7 skills, 3 agents)."
 echo "Open a new Claude Code session and type /dr: to see commands."
