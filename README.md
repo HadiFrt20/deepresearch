@@ -2,6 +2,8 @@
 
 Autonomous multi-session research for Claude Code.
 
+![Architecture](docs/architecture.png)
+
 ## Install
 
 ```bash
