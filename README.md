@@ -1,8 +1,46 @@
-# deepresearch
+<p align="center">
+  <img src="docs/architecture.png" alt="deepresearch architecture" width="800">
+</p>
 
-Autonomous multi-session research for Claude Code.
+<h1 align="center">deepresearch</h1>
 
-![Architecture](docs/architecture.png)
+<p align="center">
+  <strong>Turn Claude Code into an autonomous research agent that runs for hours, not minutes.</strong>
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> &bull;
+  <a href="#quick-start">Quick start</a> &bull;
+  <a href="#how-it-works">How it works</a> &bull;
+  <a href="#commands">Commands</a> &bull;
+  <a href="#autonomous-mode">Autonomous mode</a> &bull;
+  <a href="#self-improvement">Self-improvement</a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/claude%20code-skills-blueviolet" alt="Claude Code Skills">
+  <img src="https://img.shields.io/badge/agents-multi--agent-orange" alt="Multi-Agent">
+</p>
+
+---
+
+## The problem
+
+You prompt Claude Code with "research X." It does a surface-level pass in 20 minutes and stops. No structure, no verification, no memory across sessions.
+
+**deepresearch** fixes this. It decomposes your research into 80-120 atomic tasks, spawns isolated subagents for each, verifies every output against schemas, and self-improves the researcher over time. One command to start. Walk away. Come back to structured, source-backed findings.
+
+### What you get
+
+- **Multi-session research** that picks up exactly where it left off
+- **Structured output** with JSON schemas, source URLs, and verification for every claim
+- **Self-improving researcher** that gets better each phase (eval, mutate, re-run, keep/revert)
+- **Parallel execution** with automatic dependency analysis
+- **Autonomous mode** for overnight unattended runs
+- **Anti-hallucination rules** baked in: `NOT_FOUND` over guessing, sources required, conflicts flagged
+
+---
 
 ## Install
 
@@ -11,158 +49,172 @@ git clone https://github.com/HadiFrt20/deepresearch.git ~/.claude/skills/deepres
 cd ~/.claude/skills/deepresearch && ./setup
 ```
 
+That's it. No dependencies. No build step. Open a new Claude Code session and the commands are available.
+
 ## Quick start
 
 ```
-/dr-new        — answer 9 questions, get a full project scaffold
-/dr-run        — autonomous execution (hours, not minutes)
-/dr-status     — progress dashboard
-/dr-review     — validate data quality
-/dr-resume     — pick up where you left off
-/dr-improve    — self-improving research loop
-/dr-report     — synthesize findings
+/dr-new     → interactive setup: 9 questions, full project scaffold
+/dr-run     → execute tasks autonomously
+/dr-status  → progress dashboard
 ```
 
-## Execution modes
+`/dr-new` interviews you about your research goal, scope, and preferences, then generates 11 files: execution protocol, 80-120 tasks, schemas, eval criteria, and project-local subagents. `/dr-run` takes it from there.
 
-By default, /dr-run executes tasks sequentially. You can change this.
-
-During /dr-new, you pick a default mode (sequential, sequential-auto-improve, parallel, parallel-auto-improve).
-
-Override at runtime:
-- `/dr-run`                        — uses the project default
-- `/dr-run sequential`             — one task at a time
-- `/dr-run sequential-auto-improve` — sequential + auto-improve at phase boundaries
-- `/dr-run parallel`               — batches of 5 within a phase (requires dependency analysis first)
-- `/dr-run parallel-auto-improve`  — parallel + auto-improve at phase boundaries
-
-### Dependency analysis for parallel mode
-
-Before the first parallel run in a project, /dr-run spawns a dr-planner subagent
-that reads todo.md, ROADMAP.md, and ARCHITECTURE.md to classify each task as
-SAFE, RISKY, BLOCKING, or CROSS-PHASE. It writes `.research/parallel-plan.md` with
-a recommendation (parallelize fully, partial, sequential only, or mixed). You
-review the plan, then re-run `/dr-run parallel` to proceed.
-
-This prevents race conditions on shared output files and ensures tasks that
-depend on each other don't run simultaneously.
-
-### Auto-improve at phase boundaries
-
-In the auto-improve modes, /dr-run automatically runs the /dr-improve ratchet
-between phases: score current phase data, analyze failures, mutate researcher,
-re-run sample, keep or revert. The next phase starts with the improved
-researcher. All version history is saved to `.research/eval-history/`.
-
-## Autonomous mode
-
-By default, /dr-run asks for approval on every web search, web fetch, and file write.
-This is safe but makes overnight runs impossible.
-
-To run fully autonomously:
-  /dr-run auto
-
-The researcher still follows all safety rules (source URLs required, NOT_FOUND over
-guessing, 10-minute time budget per task). Rate-limit detection, 3-failure stop,
-and 3-hour runtime stop still trigger. You can Ctrl+C at any time.
-
-During /dr-new, pick "Auto mode" as your default permission mode to make this the default
-for all /dr-run invocations in the project.
-
-For unattended overnight runs, combine auto mode with parallel execution:
-  /dr-run parallel auto
-
-## Why this exists
-
-You prompt Claude Code with "research X." It does a surface pass in 20 minutes and stops.
-
-deepresearch adds the scaffolding: decomposed tasks, subagent isolation, verification, portable memory, and a self-improvement loop that makes the researcher better over time.
-
-## Inspired by
-
-- GSD — spec-driven scaffolding (interview, specs, tasks, execute, verify)
-- gstack — role-based skills (one command per job, opinionated defaults)
-- Karpathy autoresearch — the ratchet loop (run, score, keep/revert, repeat)
-- Self-improving skills — eval, mutate, re-run, keep if better
+---
 
 ## How it works
 
-Two ratchets:
+Two ratchets running in a loop:
 
-1. **Research ratchet** (`/dr-run`): task, subagent, verify output, mark done/fail, log, next
-2. **Improvement ratchet** (`/dr-improve`): eval, analyze failures, mutate researcher, re-run, score, keep or revert
+```
+Research ratchet (/dr-run)              Improvement ratchet (/dr-improve)
+─────────────────────────               ─────────────────────────────────
+find task → spawn subagent →            score data → analyze failures →
+verify output → mark done/fail →        mutate researcher instructions →
+log → next task                         re-run sample → keep if better
+```
 
-The researcher subagent's instructions are the trainable parameter. Eval pass rate is the metric.
+The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Same pattern Karpathy used on `train.py`, applied to research prompts. Binary eval criteria, no vibes.
+
+### Generated project structure
+
+```
+your-project/
+├── CLAUDE.md                     # execution protocol + rules
+├── todo.md                       # 80-120 atomic tasks with search strategies
+├── .research/
+│   ├── PROJECT.md                # research brief
+│   ├── ARCHITECTURE.md           # JSON schemas + methodology ADRs
+│   ├── ROADMAP.md                # 4-6 phased plan with status tracking
+│   ├── CHANGELOG.md              # append-only execution log
+│   ├── evals.md                  # binary quality criteria
+│   └── eval-history/             # researcher version history + scores
+├── .claude/agents/
+│   ├── dr-researcher.md          # project-local researcher (the trainable part)
+│   ├── dr-evaluator.md           # quality evaluator
+│   └── dr-planner.md             # dependency analyzer for parallel mode
+├── data/                         # structured JSON research output
+└── output/
+    └── final-report.md           # synthesized deliverable
+```
+
+---
 
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/dr-new` | Interview (9 questions) then generate full project scaffold |
-| `/dr-run` | Execute tasks autonomously (supports sequential, parallel, auto-improve modes) |
-| `/dr-status` | Dashboard: task counts, phase status, data completeness |
+| `/dr-new` | Interactive setup (9 questions) then full project scaffold |
+| `/dr-run` | Autonomous task execution with verification |
+| `/dr-status` | Dashboard: tasks, phases, data completeness |
 | `/dr-review` | Audit data quality against schemas |
-| `/dr-resume` | Find where you left off and continue |
-| `/dr-improve` | Self-improvement loop: eval, mutate, re-run, keep/revert |
-| `/dr-report` | Synthesize all findings into final deliverable |
+| `/dr-resume` | Pick up where you left off after a break |
+| `/dr-improve` | Self-improvement loop on the researcher |
+| `/dr-report` | Synthesize findings into final deliverable |
 
-## Tool selection
+---
 
-During `/dr-new`, you choose your research tools:
+## Execution modes
 
-- **Native** (WebSearch + WebFetch) — works out of the box, no setup needed
-- **Firecrawl MCP** — recommended for deep research (search, scrape, crawl, map)
-- **Linkup MCP** — search with structured extraction
-- **Tavily MCP** — search optimized for AI agents
-- **Multiple** — combine any of the above
+Control how tasks run. Set the default during `/dr-new` or override per-run:
 
-Your choice configures CLAUDE.md and the researcher subagent automatically. You can change tools later by editing the Tool priority section in CLAUDE.md.
+| Mode | Command | Best for |
+|------|---------|----------|
+| Sequential | `/dr-run sequential` | First runs, debugging |
+| Sequential + auto-improve | `/dr-run sequential-auto-improve` | Quality-focused research |
+| Parallel (batches of 5) | `/dr-run parallel` | Speed, large task sets |
+| Parallel + auto-improve | `/dr-run parallel-auto-improve` | Overnight runs |
 
-## Generated project structure
+**Parallel mode safety:** Before the first parallel run, a `dr-planner` subagent analyzes task dependencies and classifies each as SAFE, RISKY, BLOCKING, or CROSS-PHASE. Race conditions on shared files are handled with temp files and atomic merges.
 
-After running `/dr-new`, your project looks like this:
+---
+
+## Autonomous mode
+
+By default, `/dr-run` asks for approval on every web search, fetch, and file write. Safe, but blocks overnight runs.
 
 ```
-your-project/
-├── CLAUDE.md                          # execution protocol
-├── todo.md                            # 80-120 atomic tasks
-├── .research/
-│   ├── PROJECT.md                     # research brief
-│   ├── ARCHITECTURE.md                # schemas and methodology
-│   ├── ROADMAP.md                     # 4-6 phases with status
-│   ├── CHANGELOG.md                   # append-only execution log
-│   ├── evals.md                       # binary eval criteria
-│   ├── verify.sh                      # progress verification script
-│   ├── parallel-plan.md               # dependency analysis (parallel mode)
-│   └── eval-history/
-│       ├── baseline.json              # initial eval scores
-│       ├── iteration-1.json           # scores after improvement
-│       └── researcher-v1.md           # researcher version history
-├── .claude/agents/
-│   ├── dr-researcher.md               # project-local researcher
-│   ├── dr-evaluator.md                # project-local evaluator
-│   └── dr-planner.md                  # dependency analysis (parallel mode)
-├── prompts/
-│   └── session-*.md                   # per-session prompts
-├── data/
-│   └── *.json                         # research output files
-└── output/
-    └── final-report.md                # synthesized deliverable
+/dr-run auto                  # fully autonomous, no prompts
+/dr-run parallel auto         # parallel + autonomous
 ```
+
+**Auto mode is independent of execution mode** — it controls permissions (ask vs don't ask), not strategy (sequential vs parallel). Combine freely.
+
+Safety rails still apply in auto mode:
+- Source URLs required for every claim
+- `NOT_FOUND` over guessing (never invents data)
+- 10-minute time budget per task
+- 3 consecutive failures stops the run
+- 3-hour cumulative runtime stops the run
+- Rate-limit detection triggers checkpoints
+- `Ctrl+C` to interrupt at any time
+
+Set auto as the project default during `/dr-new` (question A9), or override per-run with `/dr-run auto` or `/dr-run ask`.
+
+---
+
+## Tool support
+
+During `/dr-new`, pick your research tools. The choice auto-configures the researcher subagent and CLAUDE.md.
+
+| Tool | What it adds |
+|------|-------------|
+| **Native** (WebSearch + WebFetch) | Works out of the box, no setup |
+| **Firecrawl MCP** | Search, scrape, crawl, site mapping |
+| **Linkup MCP** | Search with structured extraction |
+| **Tavily MCP** | Search optimized for AI agents |
+| **Multiple** | Combine any of the above |
+
+Change tools later by editing the Tool priority section in your project's CLAUDE.md.
+
+---
 
 ## Self-improvement
 
-`/dr-improve` treats the researcher subagent's instructions as the trainable parameter and eval pass rate as the metric. Same pattern Karpathy used on train.py, applied to research prompts. Binary eval criteria, no vibes.
+`/dr-improve` runs a ratchet loop on the researcher subagent:
 
-The loop:
-1. Score current data against eval criteria
-2. Analyze failure patterns (which criteria fail, why)
-3. Mutate the researcher (1-3 concrete instruction changes)
-4. Re-run a sample of failed tasks
-5. Score again
-6. Keep if better, revert if not
+1. **Score** current data against binary eval criteria
+2. **Analyze** failure patterns (which criteria fail, why, where)
+3. **Mutate** 1-3 concrete instructions in the researcher prompt
+4. **Re-run** a sample of failed tasks with the new researcher
+5. **Score again** and **keep if better, revert if not**
 
-Run `/dr-improve --cycles 3` for multiple rounds.
+```
+/dr-improve              # single improvement cycle
+/dr-improve --cycles 3   # three rounds
+/dr-improve --criteria   # add new eval criteria first
+```
+
+All versions are saved to `.research/eval-history/`. In auto-improve execution modes, this runs automatically between phases.
+
+---
+
+## Data quality guarantees
+
+Every research entry follows strict rules:
+
+| Rule | What it means |
+|------|--------------|
+| `NOT_FOUND` | Could not find this data point. Never guesses. |
+| `UNVERIFIED: {value}` | Single-source claim, not cross-referenced |
+| `CONFLICTING: {v1} vs {v2}` | Sources disagree, both values preserved |
+| `INACCESSIBLE` | Website down or blocked |
+| `sources[]` required | Every entry must cite at least 1 URL |
+| `status` required | COMPLETE, INCOMPLETE, or INACCESSIBLE |
+
+---
+
+## Inspired by
+
+| Project | What we took |
+|---------|-------------|
+| [GSD](https://github.com/zackiles/claude-code-gsd) | Spec-driven scaffolding (interview, specs, tasks, execute, verify) |
+| [gstack](https://github.com/k響/gstack) | Role-based skills (one command per job, opinionated defaults) |
+| [Karpathy's autoresearch](https://x.com/karpathy) | The ratchet loop (run, score, keep/revert, repeat) |
+| Self-improving skills | Eval, mutate, re-run, keep if better |
+
+---
 
 ## Update
 
@@ -174,11 +226,7 @@ cd ~/.claude/skills/deepresearch && git pull && ./setup
 
 ```bash
 cd ~/.claude/skills/deepresearch && ./uninstall
-```
-
-To also remove the repo:
-```bash
-rm -rf ~/.claude/skills/deepresearch
+rm -rf ~/.claude/skills/deepresearch  # optional: remove the repo
 ```
 
 ## Requirements
@@ -186,6 +234,10 @@ rm -rf ~/.claude/skills/deepresearch
 - Claude Code 2.1.88+
 - Max plan recommended for auto mode and long sessions
 - Firecrawl MCP recommended but not required
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). No build step. Edit SKILL.md files, save, test.
 
 ## License
 
