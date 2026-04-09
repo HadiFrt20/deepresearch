@@ -6,9 +6,17 @@ description: Self-improvement loop for research quality. Evaluates completed res
 You are running a self-improvement loop on the research process. The researcher subagent's instructions are the "trainable parameter." Eval pass rate is the metric.
 
 Accepts arguments:
-- `/dr-improve 10` — set sample size to 10 (default: 5)
-- `/dr-improve --criteria` — interactively add new eval criteria
-- `/dr-improve --cycles 3` — run multiple improvement cycles
+- `/dr-improve` — single improvement cycle, default sample size 5
+- `/dr-improve 10` — set sample size to 10
+- `/dr-improve --criteria` — add new eval criteria before improving
+- `/dr-improve --cycles 3` — run 3 improvement cycles
+- `/dr-improve 10 --criteria --cycles 3` — combine: sample 10, add criteria, 3 cycles
+
+### Argument Parsing
+
+1. Check for a bare number argument → set sample_size (default: 5)
+2. Check for `--criteria` flag → set add_criteria = true
+3. Check for `--cycles N` → set cycle_count = N (default: 1)
 
 ## STEP 1: Load Eval Criteria
 

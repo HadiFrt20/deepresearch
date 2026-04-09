@@ -1,13 +1,13 @@
 ---
 name: dr-new
-description: Set up a new autonomous research project. Interviews you with 9 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
+description: Set up a new autonomous research project. Interviews you with 11 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
 ---
 
 You are setting up an autonomous multi-session research project. Interview the user, then generate every file needed to run the research autonomously for hours.
 
 ## PHASE A: Interview
 
-Ask one question at a time. Wait for the answer before asking the next. There are 9 questions total.
+Ask one question at a time. Wait for the answer before asking the next. There are 11 questions total (A1–A5, A6a–A6c, A7–A9).
 
 IMPORTANT: For questions A3, A6a, A6b, A6c, A7, A8, A9, use the AskUserQuestion tool
 to present clickable options. Do NOT ask these as free text. The user should be able
@@ -143,8 +143,8 @@ Schema requirements:
 
 Fields that may not be found must accept these sentinel values:
 - `"NOT_FOUND"` — could not locate this information
-- `"UNVERIFIED: [value]"` — single-source fact, not cross-referenced
-- `"CONFLICTING: [v1] vs [v2]"` — sources disagree
+- `"UNVERIFIED: {value}"` — single-source fact, not cross-referenced
+- `"CONFLICTING: {v1} vs {v2}"` — sources disagree
 
 ### File 3: `.research/ROADMAP.md`
 
@@ -179,14 +179,21 @@ Default criteria:
 
 Add domain-specific criteria based on the research topic.
 
-### File 6: `.research/verify.sh`
+### File 6: `.claude/agents/dr-planner.md`
 
-Bash script that:
-- Counts completed `[x]`, failed `[!]`, and remaining `[ ]` tasks in todo.md
-- Lists data files with entry counts and field completeness percentages
-- Shows last 10 changelog entries
+Project-local dependency analysis subagent. Copy the default planner from the installed agents.
 
-Make it executable.
+IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `tools` (allowlist). An allowlist blocks MCP tools from being inherited. Use this frontmatter:
+
+```yaml
+---
+name: dr-planner
+description: Analyzes research task dependencies and recommends whether parallelization is safe. Spawned by /dr-run before running in parallel mode for the first time.
+disallowedTools:
+  - Edit
+model: sonnet
+---
+```
 
 ### File 7: `CLAUDE.md`
 
@@ -244,6 +251,7 @@ Map A9 answers: "Ask every time" → ask, "Auto mode" → auto.
 5. Append to CHANGELOG: `[ISO timestamp] | [task_id] | DONE/FAIL | [file] | [summary]`
 6. Every 5 tasks: write checkpoint to CHANGELOG (completed/failed/remaining counts, patterns, continue/stop recommendation)
 7. Repeat from step 1
+8. **At phase boundary**: automatically run /dr-improve to evaluate and refine research quality before starting next phase (auto-improve modes only)
 
 **Stop conditions:**
 - Phase complete (all tasks checked)

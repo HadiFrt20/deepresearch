@@ -94,6 +94,7 @@ your-project/
 │   ├── dr-researcher.md          # project-local researcher (the trainable part)
 │   ├── dr-evaluator.md           # quality evaluator
 │   └── dr-planner.md             # dependency analyzer for parallel mode
+├── prompts/                      # per-session/phase prompt files
 ├── data/                         # structured JSON research output
 └── output/
     └── final-report.md           # synthesized deliverable
@@ -105,7 +106,7 @@ your-project/
 
 | Command | What it does |
 |---------|-------------|
-| `/dr-new` | Interactive setup (9 questions) then full project scaffold |
+| `/dr-new` | Interactive setup (11 questions) then full project scaffold |
 | `/dr-run` | Autonomous task execution with verification |
 | `/dr-status` | Dashboard: tasks, phases, data completeness |
 | `/dr-review` | Audit data quality against schemas |
@@ -132,7 +133,7 @@ Control how tasks run. Set the default during `/dr-new` or override per-run:
 
 ## Autonomous mode
 
-By default, `/dr-run` asks for approval on every web search, fetch, and file write. Safe, but blocks overnight runs.
+The default permission mode is set during `/dr-new` (question A9). In "ask" mode, `/dr-run` requests approval on every web search, fetch, and file write. Safe, but blocks overnight runs.
 
 ```
 /dr-run auto                  # fully autonomous, no prompts
@@ -145,7 +146,7 @@ Safety rails still apply in auto mode:
 - Source URLs required for every claim
 - `NOT_FOUND` over guessing (never invents data)
 - 10-minute time budget per task
-- 3 consecutive failures stops the run
+- 3 consecutive failures stops the run (parallel mode falls back to sequential first)
 - 3-hour cumulative runtime stops the run
 - Rate-limit detection triggers checkpoints
 - `Ctrl+C` to interrupt at any time
