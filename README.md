@@ -54,7 +54,7 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 ## Quick start
 
 ```
-/dr-new     → interactive setup: 9 questions, full project scaffold
+/dr-new     → interactive setup: 11 questions, full project scaffold
 /dr-run     → execute tasks autonomously
 /dr-status  → progress dashboard
 ```
@@ -65,7 +65,24 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 
 ## How it works
 
-Two ratchets running in a loop:
+### Architecture
+
+deepresearch has four layers that work together:
+
+**User Commands** — Seven skills (`/dr-new`, `/dr-run`, `/dr-status`, `/dr-review`, `/dr-resume`, `/dr-improve`, `/dr-report`) drive the workflow from project setup to final deliverable.
+
+**Orchestration** — The execution engine reads `CLAUDE.md` and `todo.md`, spawns subagents for each task, verifies output against JSON schemas, and logs results to `CHANGELOG.md`. A mode router selects sequential (one task at a time) or parallel (batches of 5 with dependency analysis).
+
+**Subagents** — Three specialized agents, each with a focused role:
+- **dr-researcher** — executes a single research micro-task with structured output and schema validation
+- **dr-planner** — analyzes task dependencies for parallel safety, classifies tasks as SAFE/RISKY/BLOCKING
+- **dr-evaluator** — scores data against binary eval criteria and identifies failure patterns
+
+**Project Files** — `CLAUDE.md`, `todo.md`, `.research/ROADMAP.md`, `.research/CHANGELOG.md`, `.research/ARCHITECTURE.md`, `.research/evals.md`, and `data/*.json` provide persistent state across sessions. Research tools (WebSearch, WebFetch, or MCP servers like Firecrawl, Linkup, Tavily) are configured per-project.
+
+### Two ratchets
+
+The system runs two interlocking loops:
 
 ```
 Research ratchet (/dr-run)              Improvement ratchet (/dr-improve)
@@ -75,7 +92,7 @@ verify output → mark done/fail →        mutate researcher instructions →
 log → next task                         re-run sample → keep if better
 ```
 
-The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Same pattern Karpathy used on `train.py`, applied to research prompts. Binary eval criteria, no vibes.
+The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Binary eval criteria, no vibes.
 
 ### Generated project structure
 
@@ -94,6 +111,7 @@ your-project/
 │   ├── dr-researcher.md          # project-local researcher (the trainable part)
 │   ├── dr-evaluator.md           # quality evaluator
 │   └── dr-planner.md             # dependency analyzer for parallel mode
+├── prompts/                      # per-session/phase prompt files
 ├── data/                         # structured JSON research output
 └── output/
     └── final-report.md           # synthesized deliverable
@@ -105,7 +123,7 @@ your-project/
 
 | Command | What it does |
 |---------|-------------|
-| `/dr-new` | Interactive setup (9 questions) then full project scaffold |
+| `/dr-new` | Interactive setup (11 questions) then full project scaffold |
 | `/dr-run` | Autonomous task execution with verification |
 | `/dr-status` | Dashboard: tasks, phases, data completeness |
 | `/dr-review` | Audit data quality against schemas |
@@ -132,7 +150,7 @@ Control how tasks run. Set the default during `/dr-new` or override per-run:
 
 ## Autonomous mode
 
-By default, `/dr-run` asks for approval on every web search, fetch, and file write. Safe, but blocks overnight runs.
+The default permission mode is set during `/dr-new` (question A9). In "ask" mode, `/dr-run` requests approval on every web search, fetch, and file write. Safe, but blocks overnight runs.
 
 ```
 /dr-run auto                  # fully autonomous, no prompts
@@ -145,7 +163,7 @@ Safety rails still apply in auto mode:
 - Source URLs required for every claim
 - `NOT_FOUND` over guessing (never invents data)
 - 10-minute time budget per task
-- 3 consecutive failures stops the run
+- 3 consecutive failures stops the run (parallel mode falls back to sequential first)
 - 3-hour cumulative runtime stops the run
 - Rate-limit detection triggers checkpoints
 - `Ctrl+C` to interrupt at any time

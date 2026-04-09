@@ -149,7 +149,8 @@ Every 5 tasks (or after each parallel batch), write a checkpoint entry to `.rese
 Check stop conditions:
 - All phase tasks checked → go to Step 11
 - 3+ hours elapsed → stop with time warning
-- 3 consecutive failures (sequential) or 3+ failures in one batch (parallel) → fall back to sequential for the rest of the phase, log: `[ISO timestamp] | MODE_FALLBACK | parallel→sequential | reason: {N} failures in batch`
+- 3+ failures in one batch (parallel) → fall back to sequential for the rest of the phase, log: `[ISO timestamp] | MODE_FALLBACK | parallel→sequential | reason: {N} failures in batch`
+- 3 consecutive failures (sequential or after fallback) → stop the run with failure warning
 - Rate limited 3 times → stop with rate limit warning
 
 **Auto mode behavior:** When auto mode is active, do not print intermediate progress messages between tasks. Just log to CHANGELOG and keep going. Only print output at checkpoints and phase completion.
