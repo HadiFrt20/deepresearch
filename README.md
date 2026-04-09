@@ -54,7 +54,7 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 ## Quick start
 
 ```
-/dr-new     → interactive setup: 9 questions, full project scaffold
+/dr-new     → interactive setup: 11 questions, full project scaffold
 /dr-run     → execute tasks autonomously
 /dr-status  → progress dashboard
 ```
@@ -65,7 +65,24 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 
 ## How it works
 
-Two ratchets running in a loop:
+### Architecture
+
+deepresearch has four layers that work together:
+
+**User Commands** — Seven skills (`/dr-new`, `/dr-run`, `/dr-status`, `/dr-review`, `/dr-resume`, `/dr-improve`, `/dr-report`) drive the workflow from project setup to final deliverable.
+
+**Orchestration** — The execution engine reads `CLAUDE.md` and `todo.md`, spawns subagents for each task, verifies output against JSON schemas, and logs results to `CHANGELOG.md`. A mode router selects sequential (one task at a time) or parallel (batches of 5 with dependency analysis).
+
+**Subagents** — Three specialized agents, each with a focused role:
+- **dr-researcher** — executes a single research micro-task with structured output and schema validation
+- **dr-planner** — analyzes task dependencies for parallel safety, classifies tasks as SAFE/RISKY/BLOCKING
+- **dr-evaluator** — scores data against binary eval criteria and identifies failure patterns
+
+**Project Files** — `CLAUDE.md`, `todo.md`, `.research/ROADMAP.md`, `.research/CHANGELOG.md`, `.research/ARCHITECTURE.md`, `.research/evals.md`, and `data/*.json` provide persistent state across sessions. Research tools (WebSearch, WebFetch, or MCP servers like Firecrawl, Linkup, Tavily) are configured per-project.
+
+### Two ratchets
+
+The system runs two interlocking loops:
 
 ```
 Research ratchet (/dr-run)              Improvement ratchet (/dr-improve)
@@ -75,7 +92,7 @@ verify output → mark done/fail →        mutate researcher instructions →
 log → next task                         re-run sample → keep if better
 ```
 
-The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Same pattern Karpathy used on `train.py`, applied to research prompts. Binary eval criteria, no vibes.
+The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Binary eval criteria, no vibes.
 
 ### Generated project structure
 
