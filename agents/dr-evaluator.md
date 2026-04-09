@@ -1,6 +1,6 @@
 ---
 name: dr-evaluator
-description: Evaluates research quality against binary criteria. Used by /dr:improve.
+description: Evaluates research quality against binary criteria. Used by /dr-improve.
 disallowedTools:
   - Write
   - Edit

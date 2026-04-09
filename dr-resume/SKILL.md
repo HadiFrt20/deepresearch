@@ -48,18 +48,18 @@ Next task: {first unchecked task_id} — {task description}
 
 ### 5. Check for Issues
 
-- If last 3+ entries are FAIL, warn: "Last session had consecutive failures. Consider `/dr:improve` before continuing."
+- If last 3+ entries are FAIL, warn: "Last session had consecutive failures. Consider `/dr-improve` before continuing."
 - If there's a CHECKPOINT with "stop" recommendation, show it.
 - If todo.md has tasks marked `[!]`, note: "{N} failed tasks could be retried."
 
 ### 6. Suggest Next Action
 
-- Tasks remain in current phase → "Run `/dr:run` to continue from {next task_id}."
-- Phase just completed → "Run `/dr:review` to validate, then `/dr:run` for next phase."
-- Many failures → "Run `/dr:improve` to analyze failures and optimize the researcher."
-- All done → "Run `/dr:report` to synthesize findings."
+- Tasks remain in current phase → "Run `/dr-run` to continue from {next task_id}."
+- Phase just completed → "Run `/dr-review` to validate, then `/dr-run` for next phase."
+- Many failures → "Run `/dr-improve` to analyze failures and optimize the researcher."
+- All done → "Run `/dr-report` to synthesize findings."
 
 ## Error Handling
 
-- If CHANGELOG.md is empty or missing, tell the user: "No previous session found. Run `/dr:new` to start a new project or `/dr:run` to begin execution."
-- If todo.md is missing, tell the user to run `/dr:new` first.
+- If CHANGELOG.md is empty or missing, tell the user: "No previous session found. Run `/dr-new` to start a new project or `/dr-run` to begin execution."
+- If todo.md is missing, tell the user to run `/dr-new` first.

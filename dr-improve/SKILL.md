@@ -6,9 +6,9 @@ description: Self-improvement loop for research quality. Evaluates completed res
 You are running a self-improvement loop on the research process. The researcher subagent's instructions are the "trainable parameter." Eval pass rate is the metric.
 
 Accepts arguments:
-- `/dr:improve 10` — set sample size to 10 (default: 5)
-- `/dr:improve --criteria` — interactively add new eval criteria
-- `/dr:improve --cycles 3` — run multiple improvement cycles
+- `/dr-improve 10` — set sample size to 10 (default: 5)
+- `/dr-improve --criteria` — interactively add new eval criteria
+- `/dr-improve --cycles 3` — run multiple improvement cycles
 
 ## STEP 1: Load Eval Criteria
 
@@ -89,8 +89,8 @@ Return structured JSON with top_failure_patterns and suggested_improvements.
 3. For each selected task:
    - Reset the task from `[!]` or `[x]` to `[ ]` in todo.md
    - Back up the existing data entry
-   - Run using the updated researcher (same process as /dr:run Step 5)
-   - Verify output (same process as /dr:run Step 6)
+   - Run using the updated researcher (same process as /dr-run Step 5)
+   - Verify output (same process as /dr-run Step 6)
    - Mark `[x]` or `[!]` in todo.md
 
 ## STEP 6: Score Again
@@ -129,14 +129,14 @@ Log to `.research/CHANGELOG.md`:
 
 Based on the current pass rate:
 
-- **< 70%:** "Pass rate is below 70%. Recommend running `/dr:improve` again to target remaining failure patterns."
-- **70-85%:** "Pass rate is in the acceptable range. Continue research with `/dr:run` or improve further with `/dr:improve`."
-- **> 85%:** "Pass rate is strong. Ready for `/dr:report` to synthesize findings, or continue with `/dr:run`."
+- **< 70%:** "Pass rate is below 70%. Recommend running `/dr-improve` again to target remaining failure patterns."
+- **70-85%:** "Pass rate is in the acceptable range. Continue research with `/dr-run` or improve further with `/dr-improve`."
+- **> 85%:** "Pass rate is strong. Ready for `/dr-report` to synthesize findings, or continue with `/dr-run`."
 
 If `--cycles` flag was passed and cycles remain, automatically go back to Step 2.
 
 ## Error Handling
 
-- If evals.md is missing, tell the user to run `/dr:new` first.
-- If no data files exist, tell the user to run `/dr:run` first to generate data before improving.
+- If evals.md is missing, tell the user to run `/dr-new` first.
+- If no data files exist, tell the user to run `/dr-run` first to generate data before improving.
 - If the researcher file doesn't exist, create one from the default template.

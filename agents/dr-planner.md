@@ -1,6 +1,6 @@
 ---
 name: dr-planner
-description: Analyzes research task dependencies and recommends whether parallelization is safe. Spawned by /dr:run before running in parallel mode for the first time.
+description: Analyzes research task dependencies and recommends whether parallelization is safe. Spawned by /dr-run before running in parallel mode for the first time.
 disallowedTools:
   - Write
   - Edit

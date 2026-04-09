@@ -1,6 +1,6 @@
 # Evaluation Criteria
 
-Binary yes/no per entry. Used by /dr:improve to score research quality.
+Binary yes/no per entry. Used by /dr-improve to score research quality.
 
 ## Default Criteria
 

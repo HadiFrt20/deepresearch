@@ -1,6 +1,6 @@
 ---
 name: dr-researcher
-description: Executes a single research micro-task with structured output. Spawned by /dr:run.
+description: Executes a single research micro-task with structured output. Spawned by /dr-run.
 disallowedTools:
   - Edit
 model: sonnet
@@ -60,4 +60,4 @@ You have 10 minutes. If you're stuck on one data point for more than 5 minutes, 
 
 ## Important
 
-This is the default researcher using WebSearch + WebFetch. When /dr:new scaffolds a project, it generates a project-local version in `.claude/agents/dr-researcher.md` tailored to your selected tools. The project-local version takes precedence over this one.
+This is the default researcher using WebSearch + WebFetch. When /dr-new scaffolds a project, it generates a project-local version in `.claude/agents/dr-researcher.md` tailored to your selected tools. The project-local version takes precedence over this one.

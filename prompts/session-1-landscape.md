@@ -13,7 +13,7 @@ Read these files:
 
 ## Execution
 
-Run `/dr:run` to begin the autonomous execution loop. The loop will:
+Run `/dr-run` to begin the autonomous execution loop. The loop will:
 1. Find the next unchecked P1 task
 2. Spawn the researcher subagent
 3. Verify output
@@ -36,4 +36,4 @@ Write a session summary to `.research/CHANGELOG.md`:
 [timestamp] | SESSION_END | Phase 1 | completed: N, failed: N, remaining: N | key observations
 ```
 
-Then suggest: `/dr:status` to see progress, `/dr:review` to check quality, `/dr:run` to continue.
+Then suggest: `/dr-status` to see progress, `/dr-review` to check quality, `/dr-run` to continue.

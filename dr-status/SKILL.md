@@ -67,12 +67,12 @@ Fields below 70%: funding_amount (45%), employee_count (62%)
 ### 6. Suggest Next Action
 
 Based on the state:
-- Unchecked tasks remain → "Run `/dr:run` to continue execution."
-- Phase just completed → "Run `/dr:review` to validate data quality, then `/dr:improve` to optimize the researcher."
-- All phases complete → "Run `/dr:report` to synthesize findings."
-- High failure rate (>30%) → "Run `/dr:improve` to analyze failures and improve the researcher."
+- Unchecked tasks remain → "Run `/dr-run` to continue execution."
+- Phase just completed → "Run `/dr-review` to validate data quality, then `/dr-improve` to optimize the researcher."
+- All phases complete → "Run `/dr-report` to synthesize findings."
+- High failure rate (>30%) → "Run `/dr-improve` to analyze failures and improve the researcher."
 
 ## Error Handling
 
-- If todo.md is missing, tell the user to run `/dr:new` first.
+- If todo.md is missing, tell the user to run `/dr-new` first.
 - If no data files exist yet, show task counts and phases only.

@@ -1,46 +1,115 @@
 ---
 name: dr-new
-description: Set up a new autonomous research project. Interviews you with 8 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
+description: Set up a new autonomous research project. Interviews you with 9 questions, then generates the full project scaffold (specs, roadmap, tasks, schemas, execution protocol). Use when starting any research project.
 ---
 
 You are setting up an autonomous multi-session research project. Interview the user, then generate every file needed to run the research autonomously for hours.
 
 ## PHASE A: Interview
 
-Ask one question at a time. Wait for the answer before asking the next. There are 8 questions total.
+Ask one question at a time. Wait for the answer before asking the next. There are 9 questions total.
 
-**A1 — Mission:** What are you researching? What specific question are you trying to answer?
+IMPORTANT: For questions A3, A6a, A6b, A6c, A7, A8, A9, use the AskUserQuestion tool
+to present clickable options. Do NOT ask these as free text. The user should be able
+to select with arrow keys and Enter.
 
-**A2 — Decision:** What will you do with this research? (build a product, write a post, pitch investors, make a career move, other)
+For questions A1, A2, A4, A5, use free text prompts because the answers are
+open-ended and can't be pre-enumerated.
 
-**A3 — Done condition:** What artifact do you want at the end? (strategic brief, spreadsheet, landscape map, opportunity scorecard, other)
+When using AskUserQuestion, construct it like this:
 
-**A4 — Scope:** How many categories/segments? Geographic scope? Company stage filter? Depth per entity (surface vs deep)?
+```
+AskUserQuestion({
+  question: "What research tools do you have available?",
+  options: [
+    { label: "Native only", description: "WebSearch + WebFetch, no MCP setup needed" },
+    { label: "Firecrawl MCP", description: "Search, scrape, crawl, map — best for deep extraction" },
+    { label: "Linkup MCP", description: "Search with structured extraction" },
+    { label: "Tavily MCP", description: "Search optimized for AI agents" },
+    { label: "Multiple", description: "I'll list them in my next message" }
+  ]
+})
+```
 
-**A5 — Constraints:** How many overnight sessions (1-5)? Quality vs breadth? Budget ceiling for API credits?
+Include a short description for each option to help the user choose.
 
-**A6 — Methodology:** Breadth-first or depth-first? Single-pass or cross-referenced? How to handle dead ends (skip, retry, flag)?
+Wait for the user's selection before proceeding to the next question.
 
-**A7 — Tools:** What research tools do you have available?
-  a) Native only (WebSearch + WebFetch built into Claude Code — no setup needed)
-  b) Firecrawl MCP (search, scrape, crawl, map — best for deep site extraction)
-  c) Linkup MCP (search with structured extraction)
-  d) Tavily MCP (search optimized for AI agents)
-  e) Multiple — list which ones
+**Fallback:** Before using AskUserQuestion, check if the tool exists in the current session (use ToolSearch to look it up). If not available (older Claude Code version), fall back to numbered free-text prompts ("Pick one: 1, 2, 3, 4"). The fallback should be seamless — users on older versions still get the interview, just without the clickable UI.
 
-Tell the user: "If you're not sure, pick (a). You can always add tools later by editing the Tool priority section in CLAUDE.md."
+**A1 — Mission:** (free text) What are you researching? What specific question are you trying to answer?
 
-**A8 — Execution mode:** How should /dr:run execute tasks by default?
-  a) Sequential (recommended for first run) — one task at a time
-  b) Sequential + auto-improve — after each phase, auto-run /dr:improve before the next phase
-  c) Parallel batches — up to 5 tasks in parallel within a phase (requires dependency analysis first)
-  d) Parallel + auto-improve — parallel within phase + auto-improve at phase boundaries
+**A2 — Decision:** (free text) What will you do with this research? (build a product, write a post, pitch investors, make a career move, other)
 
-Tell the user: "If unsure, pick (a). You can override per-run with: /dr:run sequential, /dr:run parallel, /dr:run parallel-auto-improve, etc."
+**A3 — Done condition:** (AskUserQuestion)
+  Question: "What artifact do you want at the end?"
+  Options:
+    - Strategic brief
+    - Spreadsheet
+    - Landscape map
+    - Opportunity scorecard
+    - Multiple (list in next message)
+
+**A4 — Scope:** (free text) How many categories/segments? Geographic scope? Company stage filter? Depth per entity (surface vs deep)?
+
+**A5 — Constraints:** (free text) How many overnight sessions (1-5)? Quality vs breadth? Budget ceiling for API credits?
+
+**A6 — Methodology:** (AskUserQuestion — split into 3 sub-questions)
+
+  **A6a — Depth strategy:**
+    Question: "Breadth-first or depth-first?"
+    Options:
+      - Breadth-first
+      - Depth-first
+      - Breadth-first then depth
+      - Depth-first then breadth
+
+  **A6b — Verification:**
+    Question: "Single-pass or cross-referenced?"
+    Options:
+      - Single-pass (faster)
+      - Cross-referenced (more accurate)
+
+  **A6c — Dead ends:**
+    Question: "How to handle dead ends?"
+    Options:
+      - Skip and note
+      - Retry once
+      - Retry twice then skip
+      - Flag for manual review
+
+**A7 — Tools:** (AskUserQuestion)
+  Question: "What research tools do you have available?"
+  Options:
+    - Native only (WebSearch + WebFetch, no MCP setup needed)
+    - Firecrawl MCP (search, scrape, crawl, map — best for deep extraction)
+    - Linkup MCP (search with structured extraction)
+    - Tavily MCP (search optimized for AI agents)
+    - Multiple (I'll list them in my next message)
+
+Tell the user: "If you're not sure, pick Native only. You can always add tools later by editing the Tool priority section in CLAUDE.md."
+
+**A8 — Execution mode:** (AskUserQuestion)
+  Question: "How should /dr-run execute tasks by default?"
+  Options:
+    - Sequential (recommended for first run)
+    - Sequential + auto-improve
+    - Parallel batches
+    - Parallel + auto-improve
+
+Tell the user: "If unsure, pick Sequential. You can override per-run with: /dr-run sequential, /dr-run parallel, /dr-run parallel-auto-improve, etc."
+
+**A9 — Permission mode:** (AskUserQuestion)
+  Question: "Should /dr-run ask for approval on every tool call?"
+  Options:
+    - Ask every time (recommended for first-time users)
+    - Auto mode — never ask, run fully autonomously
+
+Tell the user: "Pick Auto mode for overnight runs or when you want to start the research and walk away. Pick Ask every time if you want to review each step. You can override at runtime: /dr-run auto or /dr-run ask."
 
 ## PHASE B: Generate Project Scaffold
 
-After all 8 answers, generate these files without asking more questions:
+After all 9 answers, generate these files without asking more questions:
 
 ### File 1: `.research/PROJECT.md`
 
@@ -99,7 +168,7 @@ Format: [timestamp] | [task_id] | [status] | [output_file] | [notes]
 
 ### File 5: `.research/evals.md`
 
-Binary evaluation criteria for research quality (used by /dr:improve).
+Binary evaluation criteria for research quality (used by /dr-improve).
 
 Default criteria:
 1. Does the entry have all required schema fields populated?
@@ -134,16 +203,36 @@ Default mode: {A8_ANSWER — one of: sequential, sequential-auto-improve, parall
 
 Supported modes:
 - `sequential` — one task at a time, safest, easiest to debug
-- `sequential-auto-improve` — sequential + /dr:improve runs automatically at each phase boundary
+- `sequential-auto-improve` — sequential + /dr-improve runs automatically at each phase boundary
 - `parallel` — batches of 5 tasks in parallel within a phase; phase boundaries remain sequential; requires dependency analysis
 - `parallel-auto-improve` — parallel + auto-improve at phase boundaries
 
-Runtime override: user can say "run in parallel mode" or pass /dr:run parallel at any time.
+Runtime override: user can say "run in parallel mode" or pass /dr-run parallel at any time.
 
-Parallel mode safety: before first parallel run in a project, /dr:run spawns a dr-planner subagent to analyze task dependencies and flag any conflicts. If the plan is unsafe, user is asked to write dependency annotations in todo.md before proceeding.
+Parallel mode safety: before first parallel run in a project, /dr-run spawns a dr-planner subagent to analyze task dependencies and flag any conflicts. If the plan is unsafe, user is asked to write dependency annotations in todo.md before proceeding.
 ```
 
-Map A8 answers to mode names: (a) → sequential, (b) → sequential-auto-improve, (c) → parallel, (d) → parallel-auto-improve.
+Map A8 answers to mode names: Sequential → sequential, Sequential + auto-improve → sequential-auto-improve, Parallel batches → parallel, Parallel + auto-improve → parallel-auto-improve.
+
+**Permission Mode** — Add this section right after Execution Mode:
+
+```
+## Permission Mode
+
+Default: {A9_ANSWER — one of: auto, ask}
+
+When permission mode is "auto":
+- All tool calls proceed without user approval
+- Research runs end-to-end without interruption
+- User can override per-run: /dr-run ask
+
+When permission mode is "ask":
+- User approves each web search, fetch, and file write
+- Slower but lets you inspect each step
+- User can override per-run: /dr-run auto
+```
+
+Map A9 answers: "Ask every time" → ask, "Auto mode" → auto.
 
 **Bootstrap** — "Read these files first: .research/ROADMAP.md, todo.md, .research/CHANGELOG.md"
 
@@ -178,7 +267,7 @@ Map A8 answers to mode names: (a) → sequential, (b) → sequential-auto-improv
 
 **Session handoff:** Write session summary to CHANGELOG at session end.
 
-**Self-improvement:** After each phase completes, run /dr:improve to evaluate and refine the researcher subagent.
+**Self-improvement:** After each phase completes, run /dr-improve to evaluate and refine the researcher subagent.
 
 ### File 8: `todo.md`
 
@@ -201,7 +290,7 @@ IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `
 ```yaml
 ---
 name: dr-researcher
-description: Executes a single research micro-task with structured output. Spawned by /dr:run.
+description: Executes a single research micro-task with structured output. Spawned by /dr-run.
 disallowedTools:
   - Edit
 model: sonnet
@@ -224,7 +313,7 @@ IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `
 ```yaml
 ---
 name: dr-evaluator
-description: Evaluates research quality against binary criteria. Used by /dr:improve.
+description: Evaluates research quality against binary criteria. Used by /dr-improve.
 disallowedTools:
   - Write
   - Edit
@@ -245,4 +334,4 @@ One .md file per session/phase. Each prompt file contains:
 
 Print the complete file tree and say:
 
-"Your research project is scaffolded. Run /dr:run to start, or /dr:status to see the plan."
+"Your research project is scaffolded. Run /dr-run to start, or /dr-status to see the plan."

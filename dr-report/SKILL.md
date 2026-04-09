@@ -18,7 +18,7 @@ Read `.research/PROJECT.md` for:
 
 Read `.research/ROADMAP.md`. For each phase:
 - If COMPLETE, proceed
-- If IN_PROGRESS or NOT_STARTED, warn the user: "Phase {N} is not complete. The report will have gaps. Continue anyway? Or run `/dr:run` first."
+- If IN_PROGRESS or NOT_STARTED, warn the user: "Phase {N} is not complete. The report will have gaps. Continue anyway? Or run `/dr-run` first."
 
 ### 3. Load All Data
 
@@ -126,6 +126,6 @@ The report directly answers: "{original research question}"
 
 ## Error Handling
 
-- If no data files exist, tell the user to run `/dr:run` first.
-- If PROJECT.md is missing, tell the user to run `/dr:new` first.
+- If no data files exist, tell the user to run `/dr-run` first.
+- If PROJECT.md is missing, tell the user to run `/dr-new` first.
 - If data is sparse (<10 entries total), warn that findings may not be representative.

@@ -65,12 +65,12 @@ Print findings grouped by severity:
 ### 4. Suggest Actions
 
 Based on findings:
-- Critical issues → "Fix these before running `/dr:report`. Consider `/dr:run` to retry failed tasks."
-- High NOT_FOUND rates → "Run `/dr:improve` to optimize the researcher's search strategy for these fields."
-- Many INCOMPLETE → "Run `/dr:run` to continue. Some entities may need manual research."
-- Clean data → "Data looks good. Run `/dr:report` to synthesize findings."
+- Critical issues → "Fix these before running `/dr-report`. Consider `/dr-run` to retry failed tasks."
+- High NOT_FOUND rates → "Run `/dr-improve` to optimize the researcher's search strategy for these fields."
+- Many INCOMPLETE → "Run `/dr-run` to continue. Some entities may need manual research."
+- Clean data → "Data looks good. Run `/dr-report` to synthesize findings."
 
 ## Error Handling
 
-- If no data files exist, tell the user to run `/dr:run` first.
-- If ARCHITECTURE.md is missing, tell the user to run `/dr:new` first.
+- If no data files exist, tell the user to run `/dr-run` first.
+- If ARCHITECTURE.md is missing, tell the user to run `/dr-new` first.

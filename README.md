@@ -14,45 +14,63 @@ cd ~/.claude/skills/deepresearch && ./setup
 ## Quick start
 
 ```
-/dr:new        — answer 8 questions, get a full project scaffold
-/dr:run        — autonomous execution (hours, not minutes)
-/dr:status     — progress dashboard
-/dr:review     — validate data quality
-/dr:resume     — pick up where you left off
-/dr:improve    — self-improving research loop
-/dr:report     — synthesize findings
+/dr-new        — answer 9 questions, get a full project scaffold
+/dr-run        — autonomous execution (hours, not minutes)
+/dr-status     — progress dashboard
+/dr-review     — validate data quality
+/dr-resume     — pick up where you left off
+/dr-improve    — self-improving research loop
+/dr-report     — synthesize findings
 ```
 
 ## Execution modes
 
-By default, /dr:run executes tasks sequentially. You can change this.
+By default, /dr-run executes tasks sequentially. You can change this.
 
-During /dr:new, you pick a default mode (sequential, sequential-auto-improve, parallel, parallel-auto-improve).
+During /dr-new, you pick a default mode (sequential, sequential-auto-improve, parallel, parallel-auto-improve).
 
 Override at runtime:
-- `/dr:run`                        — uses the project default
-- `/dr:run sequential`             — one task at a time
-- `/dr:run sequential-auto-improve` — sequential + auto-improve at phase boundaries
-- `/dr:run parallel`               — batches of 5 within a phase (requires dependency analysis first)
-- `/dr:run parallel-auto-improve`  — parallel + auto-improve at phase boundaries
+- `/dr-run`                        — uses the project default
+- `/dr-run sequential`             — one task at a time
+- `/dr-run sequential-auto-improve` — sequential + auto-improve at phase boundaries
+- `/dr-run parallel`               — batches of 5 within a phase (requires dependency analysis first)
+- `/dr-run parallel-auto-improve`  — parallel + auto-improve at phase boundaries
 
 ### Dependency analysis for parallel mode
 
-Before the first parallel run in a project, /dr:run spawns a dr-planner subagent
+Before the first parallel run in a project, /dr-run spawns a dr-planner subagent
 that reads todo.md, ROADMAP.md, and ARCHITECTURE.md to classify each task as
 SAFE, RISKY, BLOCKING, or CROSS-PHASE. It writes `.research/parallel-plan.md` with
 a recommendation (parallelize fully, partial, sequential only, or mixed). You
-review the plan, then re-run `/dr:run parallel` to proceed.
+review the plan, then re-run `/dr-run parallel` to proceed.
 
 This prevents race conditions on shared output files and ensures tasks that
 depend on each other don't run simultaneously.
 
 ### Auto-improve at phase boundaries
 
-In the auto-improve modes, /dr:run automatically runs the /dr:improve ratchet
+In the auto-improve modes, /dr-run automatically runs the /dr-improve ratchet
 between phases: score current phase data, analyze failures, mutate researcher,
 re-run sample, keep or revert. The next phase starts with the improved
 researcher. All version history is saved to `.research/eval-history/`.
+
+## Autonomous mode
+
+By default, /dr-run asks for approval on every web search, web fetch, and file write.
+This is safe but makes overnight runs impossible.
+
+To run fully autonomously:
+  /dr-run auto
+
+The researcher still follows all safety rules (source URLs required, NOT_FOUND over
+guessing, 10-minute time budget per task). Rate-limit detection, 3-failure stop,
+and 3-hour runtime stop still trigger. You can Ctrl+C at any time.
+
+During /dr-new, pick "Auto mode" as your default permission mode to make this the default
+for all /dr-run invocations in the project.
+
+For unattended overnight runs, combine auto mode with parallel execution:
+  /dr-run parallel auto
 
 ## Why this exists
 
@@ -71,8 +89,8 @@ deepresearch adds the scaffolding: decomposed tasks, subagent isolation, verific
 
 Two ratchets:
 
-1. **Research ratchet** (`/dr:run`): task, subagent, verify output, mark done/fail, log, next
-2. **Improvement ratchet** (`/dr:improve`): eval, analyze failures, mutate researcher, re-run, score, keep or revert
+1. **Research ratchet** (`/dr-run`): task, subagent, verify output, mark done/fail, log, next
+2. **Improvement ratchet** (`/dr-improve`): eval, analyze failures, mutate researcher, re-run, score, keep or revert
 
 The researcher subagent's instructions are the trainable parameter. Eval pass rate is the metric.
 
@@ -80,17 +98,17 @@ The researcher subagent's instructions are the trainable parameter. Eval pass ra
 
 | Command | What it does |
 |---------|-------------|
-| `/dr:new` | Interview (8 questions) then generate full project scaffold |
-| `/dr:run` | Execute tasks autonomously (supports sequential, parallel, auto-improve modes) |
-| `/dr:status` | Dashboard: task counts, phase status, data completeness |
-| `/dr:review` | Audit data quality against schemas |
-| `/dr:resume` | Find where you left off and continue |
-| `/dr:improve` | Self-improvement loop: eval, mutate, re-run, keep/revert |
-| `/dr:report` | Synthesize all findings into final deliverable |
+| `/dr-new` | Interview (9 questions) then generate full project scaffold |
+| `/dr-run` | Execute tasks autonomously (supports sequential, parallel, auto-improve modes) |
+| `/dr-status` | Dashboard: task counts, phase status, data completeness |
+| `/dr-review` | Audit data quality against schemas |
+| `/dr-resume` | Find where you left off and continue |
+| `/dr-improve` | Self-improvement loop: eval, mutate, re-run, keep/revert |
+| `/dr-report` | Synthesize all findings into final deliverable |
 
 ## Tool selection
 
-During `/dr:new`, you choose your research tools:
+During `/dr-new`, you choose your research tools:
 
 - **Native** (WebSearch + WebFetch) — works out of the box, no setup needed
 - **Firecrawl MCP** — recommended for deep research (search, scrape, crawl, map)
@@ -102,7 +120,7 @@ Your choice configures CLAUDE.md and the researcher subagent automatically. You 
 
 ## Generated project structure
 
-After running `/dr:new`, your project looks like this:
+After running `/dr-new`, your project looks like this:
 
 ```
 your-project/
@@ -134,7 +152,7 @@ your-project/
 
 ## Self-improvement
 
-`/dr:improve` treats the researcher subagent's instructions as the trainable parameter and eval pass rate as the metric. Same pattern Karpathy used on train.py, applied to research prompts. Binary eval criteria, no vibes.
+`/dr-improve` treats the researcher subagent's instructions as the trainable parameter and eval pass rate as the metric. Same pattern Karpathy used on train.py, applied to research prompts. Binary eval criteria, no vibes.
 
 The loop:
 1. Score current data against eval criteria
@@ -144,7 +162,7 @@ The loop:
 5. Score again
 6. Keep if better, revert if not
 
-Run `/dr:improve --cycles 3` for multiple rounds.
+Run `/dr-improve --cycles 3` for multiple rounds.
 
 ## Update
 

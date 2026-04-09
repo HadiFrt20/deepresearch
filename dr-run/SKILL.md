@@ -1,21 +1,50 @@
 ---
 name: dr-run
-description: Execute the next batch of research tasks autonomously. Reads todo.md, spawns subagents for each task, verifies output, and loops until the current phase is complete or a stop condition is hit. Use after /dr:new has scaffolded the project.
+description: Execute the next batch of research tasks autonomously. Reads todo.md, spawns subagents for each task, verifies output, and loops until the current phase is complete or a stop condition is hit. Use after /dr-new has scaffolded the project.
 ---
 
 You are executing an autonomous research loop. Read CLAUDE.md for the full execution protocol.
 
-Accepts an optional mode argument: `/dr:run`, `/dr:run sequential`, `/dr:run parallel`, `/dr:run parallel-auto-improve`, `/dr:run sequential-auto-improve`.
+Accepts optional arguments: `/dr-run`, `/dr-run sequential`, `/dr-run parallel`, `/dr-run parallel-auto-improve`, `/dr-run sequential-auto-improve`, `/dr-run auto`, `/dr-run parallel auto`, `/dr-run sequential auto`.
+
+## Auto mode
+
+/dr-run supports an `auto` flag that suppresses all permission prompts and user interruptions.
+
+Usage:
+  /dr-run              → default, asks for approval on sensitive operations
+  /dr-run auto         → fully autonomous, no prompts
+  /dr-run parallel auto → combine with parallel mode
+  /dr-run sequential auto → explicit sequential + auto
+
+When auto mode is active:
+- All web searches, fetches, and scrapes proceed without asking
+- All file writes proceed without asking
+- All bash commands needed for research proceed without asking
+- Subagents spawn with inherited permissions (no extra approval per subagent)
+- User is NOT interrupted between tasks
+- Research runs uninterrupted until: phase completes, stop condition hits, or auto mode is explicitly disabled
+
+Safety in auto mode:
+- The researcher subagent still follows all rules in CLAUDE.md (NOT_FOUND over guessing, source URLs required, 10-min time budget per task)
+- Rate-limit detection still triggers checkpoints (see CHANGELOG)
+- 3 consecutive failures still stops the run
+- 3+ hour cumulative runtime still stops the run
+- User can interrupt at any time with Ctrl+C
+
+Auto mode is the recommended setting for overnight runs and long research sessions.
 
 ## Execution Loop
 
-### Step 0: Determine Execution Mode
+### Step 0: Determine Execution Mode and Permission Mode
 
 1. Check if the user passed a mode argument: `sequential` | `parallel` | `sequential-auto-improve` | `parallel-auto-improve`
-2. If no argument, read `CLAUDE.md` for the "Execution Mode" section and use the default mode listed there
-3. If `CLAUDE.md` has no "Execution Mode" section, fall back to `sequential`
+2. Check if the user passed `auto` or `ask` as an additional argument
+3. If no mode argument, read `CLAUDE.md` for the "Execution Mode" section and use the default mode listed there
+4. If no permission argument, read `CLAUDE.md` for the "Permission Mode" section. If absent, default to `ask`
+5. If `CLAUDE.md` has no "Execution Mode" section, fall back to `sequential`
 
-Print: `Mode: {mode}`
+Print: `Mode: {mode} | Permissions: {auto or ask}`
 
 ### Step 0.5: Dependency Analysis (parallel modes only)
 
@@ -25,14 +54,14 @@ If mode is `parallel` or `parallel-auto-improve`:
 2. If the plan does not exist or is stale:
    a. Spawn the `dr-planner` subagent to analyze the current phase. Use the Agent tool with `subagent_type: "dr-planner"`.
    b. After the planner returns, **STOP** and show the plan summary to the user.
-   c. Print: "Parallel plan written to `.research/parallel-plan.md`. Review it, then run `/dr:run parallel` again to proceed."
-   d. If the plan recommends **SEQUENTIAL ONLY**, print: "The planner recommends sequential execution for this phase. Consider running `/dr:run sequential` instead."
+   c. Print: "Parallel plan written to `.research/parallel-plan.md`. Review it, then run `/dr-run parallel` again to proceed."
+   d. If the plan recommends **SEQUENTIAL ONLY**, print: "The planner recommends sequential execution for this phase. Consider running `/dr-run sequential` instead."
    e. **Do NOT proceed automatically** — force the user to confirm by re-running the command after reviewing the plan.
 3. If the plan exists and is fresh, re-read `.research/parallel-plan.md` and proceed using its recommended strategy.
 
 ### Step 1: Find Current Phase
 
-Read `.research/ROADMAP.md`. Find the current phase — the first phase with status `NOT_STARTED` or `IN_PROGRESS`. If all phases are `COMPLETE`, tell the user and suggest `/dr:report`.
+Read `.research/ROADMAP.md`. Find the current phase — the first phase with status `NOT_STARTED` or `IN_PROGRESS`. If all phases are `COMPLETE`, tell the user and suggest `/dr-report`.
 
 ### Step 2: Activate Phase
 
@@ -61,9 +90,14 @@ Write to: {file path specified in the task}
 Follow the data rules in CLAUDE.md. You have a 10-minute time budget.
 ```
 
+If auto mode is active, prepend this instruction to the subagent prompt:
+```
+Run autonomously. Do not ask for permission on any tool call. Complete the task or report NOT_FOUND for missing data.
+```
+
 Use the Agent tool with `subagent_type: "dr-researcher"` and include the full task context.
 
-**Parallel modes:** Spawn up to 5 `dr-researcher` subagents **in a single message** using multiple Agent tool calls. Each subagent gets the same prompt format as above but for its specific task. If the parallel plan requires merge strategy for RISKY tasks, instruct each subagent to write to `data/{file}.{task_id}.tmp.json` instead of the canonical file.
+**Parallel modes:** Spawn up to 5 `dr-researcher` subagents **in a single message** using multiple Agent tool calls. Each subagent gets the same prompt format as above (including the auto mode prefix if active) but for its specific task. If the parallel plan requires merge strategy for RISKY tasks, instruct each subagent to write to `data/{file}.{task_id}.tmp.json` instead of the canonical file.
 
 ### Step 6: Verify Output
 
@@ -118,6 +152,8 @@ Check stop conditions:
 - 3 consecutive failures (sequential) or 3+ failures in one batch (parallel) → fall back to sequential for the rest of the phase, log: `[ISO timestamp] | MODE_FALLBACK | parallel→sequential | reason: {N} failures in batch`
 - Rate limited 3 times → stop with rate limit warning
 
+**Auto mode behavior:** When auto mode is active, do not print intermediate progress messages between tasks. Just log to CHANGELOG and keep going. Only print output at checkpoints and phase completion.
+
 If not stopped, go to Step 3.
 
 ### Step 11: Phase Complete
@@ -130,7 +166,7 @@ When all tasks for the current phase are checked:
 ### Step 11.5: Auto-Improve (auto-improve modes only)
 
 If mode is `sequential-auto-improve` or `parallel-auto-improve`:
-1. Before starting the next phase, automatically run the `/dr:improve` loop against the completed phase's data
+1. Before starting the next phase, automatically run the `/dr-improve` loop against the completed phase's data
 2. Log to CHANGELOG: `[ISO timestamp] | AUTO_IMPROVE | phase:{N} | old_pass_rate:{X}% | new_pass_rate:{Y}% | decision:{kept or reverted}`
 3. If improved: next phase uses the new researcher. If reverted: next phase uses the previous researcher.
 4. Continue to the next phase automatically.
@@ -144,10 +180,10 @@ Print results based on mode:
 Phase {N} complete. {done} done, {failed} failed.
 
 Next steps:
-  /dr:status   — see overall progress
-  /dr:review   — validate data quality for this phase
-  /dr:improve  — run self-improvement loop on the researcher
-  /dr:run      — continue to next phase
+  /dr-status   — see overall progress
+  /dr-review   — validate data quality for this phase
+  /dr-improve  — run self-improvement loop on the researcher
+  /dr-run      — continue to next phase
 ```
 
 **Parallel modes:** Also show batch-level stats:
@@ -156,9 +192,9 @@ Phase {N} complete. {done} done, {failed} failed.
 Batches: {batch_count} | Fallbacks to sequential: {fallback_count}
 
 Next steps:
-  /dr:status   — see overall progress (includes mode stats)
-  /dr:review   — validate data quality for this phase
-  /dr:run      — continue to next phase
+  /dr-status   — see overall progress (includes mode stats)
+  /dr-review   — validate data quality for this phase
+  /dr-run      — continue to next phase
 ```
 
 **Auto-improve modes:** Also show researcher version history:
@@ -169,9 +205,9 @@ Decision: {kept or reverted}
 
 ## Error Handling
 
-- If CLAUDE.md is missing, tell the user to run `/dr:new` first.
-- If todo.md is missing, tell the user to run `/dr:new` first.
+- If CLAUDE.md is missing, tell the user to run `/dr-new` first.
+- If todo.md is missing, tell the user to run `/dr-new` first.
 - If a subagent crashes without output, mark the task `[!]` and continue.
 - If a data file already exists, the subagent should merge/append, not overwrite.
 - If parallel-plan.md is missing when running in parallel mode, spawn dr-planner first (Step 0.5).
-- If the planner recommends SEQUENTIAL ONLY, suggest `/dr:run sequential` and do not proceed in parallel.
+- If the planner recommends SEQUENTIAL ONLY, suggest `/dr-run sequential` and do not proceed in parallel.
