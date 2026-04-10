@@ -50,16 +50,6 @@
     "verification_mode": "source_verification"
   },
   {
-    "claim_text": "Orum's key investor is Andreessen Horowitz",
-    "field_name": "key_investors",
-    "task_id": "P1.03",
-    "verdict": "refuted",
-    "counter_evidence": "No evidence of Andreessen Horowitz investing in Orum. Crunchbase lists Craft Ventures, Unusual Ventures, and Floodgate as investors.",
-    "adversary_evidence": "Source states: 'Orum investors include Craft Ventures (lead), Unusual Ventures, and Floodgate Fund' per Crunchbase. No mention of Andreessen Horowitz in any funding announcement or investor page. — contradicts claim that Andreessen Horowitz is a key investor",
-    "confidence_delta": null,
-    "verification_mode": "contradiction_search"
-  },
-  {
     "claim_text": "Orum was founded in 2018",
     "field_name": "founded_year",
     "task_id": "P1.03",

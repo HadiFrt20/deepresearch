@@ -150,7 +150,7 @@
     "employee_count": "UNVERIFIED: 60",
     "funding_total": "UNVERIFIED: $28M",
     "funding_stage": "Series B",
-    "key_investors": ["Andreessen Horowitz"],
+    "key_investors": ["Craft Ventures", "Unusual Ventures"],
     "pricing_model": "per-seat",
     "key_features": ["AI parallel dialing", "Live call coaching", "Voicemail drop", "Call analytics"],
     "target_market": "mid-market",
@@ -207,7 +207,7 @@
       "target_market": { "sourced": true },
       "description": { "sourced": true },
       "funding_stage": { "sourced": true },
-      "key_investors": { "sourced": false }
+      "key_investors": { "sourced": true }
     }
   }
 ]
