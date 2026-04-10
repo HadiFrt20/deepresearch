@@ -107,9 +107,17 @@ Tell the user: "If unsure, pick Sequential. You can override per-run with: /dr-r
 
 Tell the user: "Pick Auto mode for overnight runs or when you want to start the research and walk away. Pick Ask every time if you want to review each step. You can override at runtime: /dr-run auto or /dr-run ask."
 
+**A10 — Provenance fields:** (AskUserQuestion)
+  Question: "Which 3 fields are most important to verify? (These will get full provenance tracking with adversarial verification.)"
+  Options: Present the entity-specific fields from the schema you designed in your head during A1-A4 (e.g., funding_total, employee_count, founded_year, pricing_model, revenue, etc.). Show 5-8 options based on the research domain. The user picks exactly 3.
+
+Tell the user: "These 3 fields will get full provenance envelopes — source URL, extraction method, cross-references, confidence score, and adversarial verification. All other factual fields get a simple sourced: true/false flag. You can change this later in .research/ARCHITECTURE.md."
+
+Write the chosen fields to `provenance_fields` in `.research/ARCHITECTURE.md` (see File 2 below).
+
 ## PHASE B: Generate Project Scaffold
 
-After all 9 answers, generate these files without asking more questions:
+After all answers, generate these files without asking more questions:
 
 ### File 1: `.research/PROJECT.md`
 
@@ -146,6 +154,17 @@ Fields that may not be found must accept these sentinel values:
 - `"UNVERIFIED: {value}"` — single-source fact, not cross-referenced
 - `"CONFLICTING: {v1} vs {v2}"` — sources disagree
 
+At the end of ARCHITECTURE.md, add a provenance section:
+
+```markdown
+## Provenance
+
+provenance_fields: ["{A10_field_1}", "{A10_field_2}", "{A10_field_3}"]
+
+These 3 fields get full provenance envelopes (12 fields each) with adversarial verification.
+All other factual fields get a simple `"sourced": true/false` flag.
+```
+
 ### File 3: `.research/ROADMAP.md`
 
 4-6 phases. Each phase contains:
@@ -178,6 +197,11 @@ Default criteria:
 5. Is the entity's own website listed in sources?
 
 Add domain-specific criteria based on the research topic.
+
+Add these adversary-aware criteria (active only when adversary sidecar files exist):
+6. **adversary_survival_rate** — Is the adversary survival rate >= 0.7? (confirmed + weakened) / (confirmed + weakened + refuted). Skip if no sidecar files.
+7. **provenance_completeness** — Do >= 90% of provenance_fields have full provenance envelopes with no nulls?
+8. **source_support_rate** — Do >= 80% of provenance claims use direct_quote or paraphrase (not inference)?
 
 ### File 6: `.claude/agents/dr-planner.md`
 
@@ -337,6 +361,26 @@ One .md file per session/phase. Each prompt file contains:
 - Loop instruction (execute tasks until phase complete or stop condition)
 - Termination condition
 - Summary instruction (write to CHANGELOG on completion)
+
+### File 12: `.claude/agents/dr-adversary.md`
+
+Project-local adversary subagent. Copy from the installed `agents/dr-adversary.md`.
+
+IMPORTANT: The subagent frontmatter MUST use `disallowedTools` (denylist), NOT `tools` (allowlist). Use this frontmatter:
+
+```yaml
+---
+name: dr-adversary
+description: Adversarial verification agent. Attacks completed research claims by checking source support, searching for contradictions, and cross-referencing. Spawned by /dr-run.
+disallowedTools:
+  - Edit
+model: sonnet
+---
+```
+
+### Directory: `.research/source-cache/`
+
+Create this directory. It will be populated by the researcher as it fetches URLs, and read by the adversary for cached source content.
 
 ## After Generation
 
