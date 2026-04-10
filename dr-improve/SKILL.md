@@ -30,10 +30,16 @@ Read all files in `data/`. For each entry in each file:
 - Run every eval criterion → PASS or FAIL
 - Record results per entry and per criterion
 
+**Adversary-aware scoring:** Also read any sidecar files (`data/*.adversary.json`). Merge sidecar verdicts with data entries by matching `task_id` and `field_name`.
+- If sidecar files exist → include `adversary_survival_rate` as a key metric alongside overall pass rate
+- If NO sidecar files exist (zero `*.adversary.json` files) → skip all adversary criteria automatically. The data IS the state — no config flag needed.
+- If a sidecar file contains malformed JSON → skip that file, log a warning, continue processing others
+
 Calculate:
 - Overall pass rate (entries where ALL criteria pass / total entries)
 - Per-criterion pass rate
 - Total entries evaluated
+- Adversary survival rate (if sidecar files exist): `(confirmed + weakened) / (confirmed + weakened + refuted)`
 
 Save results to `.research/eval-history/baseline.json` (first run) or `.research/eval-history/iteration-{N}.json` (subsequent runs).
 
@@ -65,14 +71,17 @@ Analyze these eval results:
 - Overall pass rate: {rate}
 - Per-criterion rates: {rates}
 - Total entries: {count}
+- Adversary survival rate: {rate or "N/A — no sidecar files"}
 
 Read the data files in data/ and the eval criteria in .research/evals.md.
+Also read any sidecar files (data/*.adversary.json) and merge verdicts with data entries.
 
 Answer:
 1. Which criteria fail most frequently?
 2. Are failures clustered by category, type, or data source?
 3. What do passing entries do differently from failing entries?
 4. What specific changes to the researcher's instructions would fix the top 3 failure patterns?
+5. Which claims were refuted or weakened by the adversary? What patterns emerge?
 
 Return structured JSON with top_failure_patterns and suggested_improvements.
 ```
@@ -86,7 +95,18 @@ Return structured JSON with top_failure_patterns and suggested_improvements.
    - BAD: "Be more thorough when searching"
    - GOOD: "Always search for '{entity name} funding' and '{entity name} crunchbase' as separate queries. Extract the funding amount from the first result that contains a dollar figure."
 5. Change 1-3 instructions per cycle. Do not rewrite the entire file.
-6. Write the updated researcher to `.claude/agents/dr-researcher.md`
+
+6. **Inject Known Vulnerabilities (if sidecar files exist):**
+   After identifying failure patterns, also extract "attack patterns" from sidecar files (`data/*.adversary.json`):
+   - An attack pattern = a `field_name` + `extraction_method` combination that was `refuted` or `weakened` 2+ times across batches
+   - Scan all sidecar verdicts, group by `field_name`, count refuted+weakened per field
+   - Take the top 3 attack patterns (by refuted+weakened count)
+   - Inject them as "Known vulnerabilities" bullet points in the researcher's `## Data Rules` section, right after the existing rules
+   - Format each as: `- **Known vulnerability:** {field} claims using {method} are frequently contested. {specific mitigation advice based on the adversary's counter-evidence}.`
+   - **Cap at 5 total Known Vulnerabilities.** If the researcher already has 5, replace the oldest (topmost) vulnerability with the newest one. Oldest = the one that has been there the longest (first in the list).
+   - If no sidecar files exist, skip this sub-step entirely.
+
+7. Write the updated researcher to `.claude/agents/dr-researcher.md`
 
 ## STEP 5: Re-run Sample
 
