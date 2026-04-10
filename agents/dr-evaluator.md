@@ -79,6 +79,35 @@ Return structured JSON:
 }
 ```
 
+## Adversary-Aware Criteria
+
+When adversary sidecar files exist (`data/*.adversary.json`), evaluate these additional criteria. Read BOTH data files AND sidecar files, merging them at read time (match sidecar verdicts to data entries by `task_id` and `field_name`).
+
+**If no sidecar files exist** (zero `*.adversary.json` files in `data/`), skip all three adversary criteria below. Do not fail entries for missing adversary data.
+
+**Sidecar file error handling:** If a sidecar file exists but contains malformed JSON, skip that file, log a warning in your output (`"sidecar_parse_errors": ["filename"]`), and continue processing other files. Do not crash.
+
+### Criterion: adversary_survival_rate >= 0.7
+
+PASS if at least 70% of adversary-tested claims have verdict `confirmed` or `weakened` (not `refuted`).
+
+Formula: `(confirmed + weakened) / (confirmed + weakened + refuted) >= 0.7`
+
+Claims with `pending` or `unverifiable` verdicts are excluded from the denominator. If the denominator is 0 (no claims have been tested), this criterion is skipped.
+
+### Criterion: provenance_completeness >= 0.9
+
+PASS if at least 90% of `provenance_fields` (from `.research/ARCHITECTURE.md`) have full provenance envelopes with no null values in required fields.
+
+Required fields: `claim_text`, `source_url`, `extraction_method`, `cross_ref_count`, `confidence_score`, `volatility_class`.
+Exception: `adversary_evidence` may be null for `confirmed` claims. `verified_at` may be null for `pending` claims.
+
+### Criterion: source_support_rate >= 0.8
+
+PASS if at least 80% of provenance claims have `extraction_method` of `direct_quote` or `paraphrase` (not `inference`).
+
+Inference-only claims are penalized because they are harder to verify and more likely to be contested by the adversary.
+
 ## Rules
 
 - Be precise. Use exact numbers, not approximations.
