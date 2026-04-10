@@ -5,13 +5,14 @@
 <h1 align="center">deepresearch</h1>
 
 <p align="center">
-  <strong>Turn Claude Code into an autonomous research agent that runs for hours, not minutes.</strong>
+  <strong>Autonomous research that defends itself. Every claim adversarially verified.</strong>
 </p>
 
 <p align="center">
   <a href="#install">Install</a> &bull;
   <a href="#quick-start">Quick start</a> &bull;
   <a href="#how-it-works">How it works</a> &bull;
+  <a href="#adversarial-verification">Trust stack</a> &bull;
   <a href="#commands">Commands</a> &bull;
   <a href="#autonomous-mode">Autonomous mode</a> &bull;
   <a href="#self-improvement">Self-improvement</a>
@@ -29,14 +30,16 @@
 
 You prompt Claude Code with "research X." It does a surface-level pass in 20 minutes and stops. No structure, no verification, no memory across sessions.
 
-**deepresearch** fixes this. It decomposes your research into 80-120 atomic tasks, spawns isolated subagents for each, verifies every output against schemas, and self-improves the researcher over time. One command to start. Walk away. Come back to structured, source-backed findings.
+**deepresearch** fixes this. It decomposes your research into 80-120 atomic tasks, spawns isolated subagents for each, verifies every output against schemas, and self-improves the researcher over time. Every factual claim gets a provenance envelope and an adversarial verification pass. One command to start. Walk away. Come back to research you can actually trust.
 
 ### What you get
 
+- **Adversarial verification** — a dedicated adversary agent attacks every claim, checking source support, searching for contradictions, and cross-referencing. Claims that survive get a trust score. Claims that don't get flagged.
+- **Epistemic provenance** — high-value fields carry a 12-field provenance envelope: source URL, extraction method, cross-references, confidence score, adversary verdict, and survival score
+- **Self-improving researcher** that gets better each phase — the adversary's attack patterns are fed forward as defensive instructions, training the researcher to produce un-attackable claims
+- **Trust score dashboard** — `Trust: 87% survived | Score: 0.74` at a glance, plus a most-attacked leaderboard
 - **Multi-session research** that picks up exactly where it left off
-- **Structured output** with JSON schemas, source URLs, and verification for every claim
-- **Self-improving researcher** that gets better each phase (eval, mutate, re-run, keep/revert)
-- **Parallel execution** with automatic dependency analysis
+- **Parallel execution** with automatic dependency analysis (~4% overhead in sequential mode, near-zero in parallel)
 - **Autonomous mode** for overnight unattended runs
 - **Anti-hallucination rules** baked in: `NOT_FOUND` over guessing, sources required, conflicts flagged
 
@@ -73,26 +76,26 @@ deepresearch has four layers that work together:
 
 **Orchestration** — The execution engine reads `CLAUDE.md` and `todo.md`, spawns subagents for each task, verifies output against JSON schemas, and logs results to `CHANGELOG.md`. A mode router selects sequential (one task at a time) or parallel (batches of 5 with dependency analysis).
 
-**Subagents** — Three specialized agents, each with a focused role:
-- **dr-researcher** — executes a single research micro-task with structured output and schema validation
+**Subagents** — Four specialized agents, each with a focused role:
+- **dr-researcher** — executes a single research micro-task with structured output, provenance envelopes, and source caching
+- **dr-adversary** — attacks completed claims by checking source support, searching for contradictions, and cross-referencing
 - **dr-planner** — analyzes task dependencies for parallel safety, classifies tasks as SAFE/RISKY/BLOCKING
-- **dr-evaluator** — scores data against binary eval criteria and identifies failure patterns
+- **dr-evaluator** — scores data against binary eval criteria including adversary survival rate
 
-**Project Files** — `CLAUDE.md`, `todo.md`, `.research/ROADMAP.md`, `.research/CHANGELOG.md`, `.research/ARCHITECTURE.md`, `.research/evals.md`, and `data/*.json` provide persistent state across sessions. Research tools (WebSearch, WebFetch, or MCP servers like Firecrawl, Linkup, Tavily) are configured per-project.
+**Project Files** — `CLAUDE.md`, `todo.md`, `.research/ROADMAP.md`, `.research/CHANGELOG.md`, `.research/ARCHITECTURE.md`, `.research/evals.md`, `data/*.json`, and `data/*.adversary.json` (sidecar files) provide persistent state across sessions.
 
-### Two ratchets
-
-The system runs two interlocking loops:
+### Three loops
 
 ```
-Research ratchet (/dr-run)              Improvement ratchet (/dr-improve)
-─────────────────────────               ─────────────────────────────────
-find task → spawn subagent →            score data → analyze failures →
-verify output → mark done/fail →        mutate researcher instructions →
-log → next task                         re-run sample → keep if better
+Research loop (/dr-run)                 Trust loop (adversary)                  Improvement loop (/dr-improve)
+───────────────────────                 ──────────────────────                  ──────────────────────────────
+find task → spawn researcher →          every 5 tasks → spawn adversary →      score data + adversary verdicts →
+verify output → add provenance →        check sources → find contradictions →  extract attack patterns →
+mark done/fail → log → next task        cross-reference → write verdicts       inject as "known vulnerabilities" →
+                                                                               re-run sample → keep if better
 ```
 
-The researcher subagent's prompt is the **trainable parameter**. Eval pass rate is the **metric**. Binary eval criteria, no vibes.
+The researcher's prompt is the **trainable parameter**. Adversary survival rate is the **metric**. The adversary trains the researcher to produce harder-to-attack claims. Research that's been trained by its own worst critic.
 
 ### Generated project structure
 
@@ -102,20 +105,72 @@ your-project/
 ├── todo.md                       # 80-120 atomic tasks with search strategies
 ├── .research/
 │   ├── PROJECT.md                # research brief
-│   ├── ARCHITECTURE.md           # JSON schemas + methodology ADRs
+│   ├── ARCHITECTURE.md           # JSON schemas + provenance_fields + ADRs
 │   ├── ROADMAP.md                # 4-6 phased plan with status tracking
 │   ├── CHANGELOG.md              # append-only execution log
-│   ├── evals.md                  # binary quality criteria
-│   └── eval-history/             # researcher version history + scores
+│   ├── evals.md                  # binary quality criteria (incl. adversary-aware)
+│   ├── eval-history/             # researcher version history + scores
+│   └── source-cache/             # cached page content for adversary verification
 ├── .claude/agents/
 │   ├── dr-researcher.md          # project-local researcher (the trainable part)
+│   ├── dr-adversary.md           # adversarial verification agent
 │   ├── dr-evaluator.md           # quality evaluator
 │   └── dr-planner.md             # dependency analyzer for parallel mode
 ├── prompts/                      # per-session/phase prompt files
-├── data/                         # structured JSON research output
+├── data/
+│   ├── *.json                    # structured research output
+│   └── *.adversary.json          # adversary verdict sidecar files
 └── output/
-    └── final-report.md           # synthesized deliverable
+    ├── final-report.md           # synthesized deliverable
+    └── provenance-chain.json     # full epistemic audit trail (--provenance)
 ```
+
+---
+
+## Adversarial verification
+
+Every 5 completed tasks, a `dr-adversary` agent attacks the research claims:
+
+| Mode | What it checks |
+|------|---------------|
+| **Source verification** | Fetches the cited URL — does it actually say what the researcher claims? |
+| **Contradiction search** | Searches for counter-evidence with negated queries |
+| **Cross-reference check** | Are "independent" sources actually independent, or all citing the same original? |
+| **Temporal check** | Is the source too old for a time-sensitive claim? |
+
+Every refuted or weakened verdict requires a **direct quote** from the source. No quote, no refutation — downgrades to `unverifiable`. This prevents adversary overreach.
+
+Results are written to sidecar files (`data/*.adversary.json`), never modifying the researcher's output. `dr-status` and `dr-report` merge data + sidecar at read time.
+
+```
+Trust: 87% survived | Score: 0.74
+Adversary: 45/52 claims reviewed (7 pending)
+```
+
+Skip adversarial verification with `--no-adversary` when you want speed over trust:
+
+```
+/dr-run --no-adversary          # provenance still produced, adversary skipped
+```
+
+### Provenance envelopes
+
+The 3 highest-value fields per entity (chosen during `/dr-new`) get full 12-field provenance tracking:
+
+```json
+{
+  "claim_text": "CrewAI raised $18M Series A",
+  "source_url": "https://crunchbase.com/organization/crewai",
+  "extraction_method": "direct_quote",
+  "cross_ref_count": 2,
+  "confidence_score": 0.9,
+  "volatility_class": "medium",
+  "adversary_verdict": "confirmed",
+  "survival_score": 0.9
+}
+```
+
+All other factual fields get a simple `"sourced": true/false` flag. Non-factual fields (identifiers, status) get no provenance. ~2x output tokens per entity, ~4% time overhead in sequential mode.
 
 ---
 
@@ -123,13 +178,15 @@ your-project/
 
 | Command | What it does |
 |---------|-------------|
-| `/dr-new` | Interactive setup (11 questions) then full project scaffold |
-| `/dr-run` | Autonomous task execution with verification |
-| `/dr-status` | Dashboard: tasks, phases, data completeness |
+| `/dr-new` | Interactive setup (11 questions, incl. provenance field selection) then full project scaffold |
+| `/dr-run` | Autonomous task execution with adversarial verification every 5 tasks |
+| `/dr-run --no-adversary` | Execute without adversarial verification (faster, less trust) |
+| `/dr-status` | Dashboard: tasks, phases, data completeness, trust score, most-attacked entities |
 | `/dr-review` | Audit data quality against schemas |
 | `/dr-resume` | Pick up where you left off after a break |
-| `/dr-improve` | Self-improvement loop on the researcher |
-| `/dr-report` | Synthesize findings into final deliverable |
+| `/dr-improve` | Self-improvement loop — uses adversary attack patterns to train the researcher |
+| `/dr-report` | Synthesize findings with [REFUTED]/[WEAKENED] markers on contested claims |
+| `/dr-report --provenance` | Also export `output/provenance-chain.json` — full epistemic audit trail |
 
 ---
 
@@ -192,11 +249,15 @@ Change tools later by editing the Tool priority section in your project's CLAUDE
 
 `/dr-improve` runs a ratchet loop on the researcher subagent:
 
-1. **Score** current data against binary eval criteria
-2. **Analyze** failure patterns (which criteria fail, why, where)
-3. **Mutate** 1-3 concrete instructions in the researcher prompt
-4. **Re-run** a sample of failed tasks with the new researcher
-5. **Score again** and **keep if better, revert if not**
+1. **Score** current data against eval criteria + adversary survival rate
+2. **Analyze** failure patterns — which criteria fail, which claims get attacked
+3. **Extract attack patterns** from adversary verdicts (fields + methods that get refuted 2+ times)
+4. **Inject "Known Vulnerabilities"** into the researcher's Data Rules (max 5, oldest replaced)
+5. **Mutate** 1-3 concrete instructions in the researcher prompt
+6. **Re-run** a sample of failed tasks with the new researcher
+7. **Score again** and **keep if better, revert if not**
+
+The adversary's attacks become the researcher's defenses. Each improvement cycle produces a researcher that's harder to attack.
 
 ```
 /dr-improve              # single improvement cycle
@@ -204,7 +265,7 @@ Change tools later by editing the Tool priority section in your project's CLAUDE
 /dr-improve --criteria   # add new eval criteria first
 ```
 
-All versions are saved to `.research/eval-history/`. In auto-improve execution modes, this runs automatically between phases.
+All versions are saved to `.research/eval-history/`. In auto-improve execution modes, this runs automatically between phases. If no adversary data exists yet, adversary criteria are auto-skipped.
 
 ---
 
