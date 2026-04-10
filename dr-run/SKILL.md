@@ -5,7 +5,7 @@ description: Execute the next batch of research tasks autonomously. Reads todo.m
 
 You are executing an autonomous research loop. Read CLAUDE.md for the full execution protocol.
 
-Accepts optional arguments: `/dr-run`, `/dr-run sequential`, `/dr-run parallel`, `/dr-run parallel-auto-improve`, `/dr-run sequential-auto-improve`, `/dr-run auto`, `/dr-run parallel auto`, `/dr-run sequential auto`.
+Accepts optional arguments: `/dr-run`, `/dr-run sequential`, `/dr-run parallel`, `/dr-run parallel-auto-improve`, `/dr-run sequential-auto-improve`, `/dr-run auto`, `/dr-run parallel auto`, `/dr-run sequential auto`, `/dr-run --no-adversary`, `/dr-run parallel --no-adversary`.
 
 ## Auto mode
 
@@ -36,15 +36,21 @@ Auto mode is the recommended setting for overnight runs and long research sessio
 
 ## Execution Loop
 
-### Step 0: Determine Execution Mode and Permission Mode
+### Step 0: Determine Execution Mode, Permission Mode, and Adversary Flag
 
 1. Check if the user passed a mode argument: `sequential` | `parallel` | `sequential-auto-improve` | `parallel-auto-improve`
 2. Check if the user passed `auto` or `ask` as an additional argument
-3. If no mode argument, read `CLAUDE.md` for the "Execution Mode" section and use the default mode listed there
-4. If no permission argument, read `CLAUDE.md` for the "Permission Mode" section. If absent, default to `ask`
-5. If `CLAUDE.md` has no "Execution Mode" section, fall back to `sequential`
+3. Check if the user passed `--no-adversary` flag
+4. If no mode argument, read `CLAUDE.md` for the "Execution Mode" section and use the default mode listed there
+5. If no permission argument, read `CLAUDE.md` for the "Permission Mode" section. If absent, default to `ask`
+6. If `CLAUDE.md` has no "Execution Mode" section, fall back to `sequential`
 
-Print: `Mode: {mode} | Permissions: {auto or ask}`
+Print: `Mode: {mode} | Permissions: {auto or ask} | Adversary: {enabled or disabled}`
+
+When `--no-adversary` is passed:
+- All adversary batches in Step 10.5 are skipped
+- Provenance envelopes are still produced by the researcher (`adversary_verdict` stays `"pending"` on all claims)
+- No sidecar files are created
 
 ### Step 0.5: Dependency Analysis (parallel modes only)
 
@@ -156,6 +162,60 @@ Check stop conditions:
 **Auto mode behavior:** When auto mode is active, do not print intermediate progress messages between tasks. Just log to CHANGELOG and keep going. Only print output at checkpoints and phase completion.
 
 If not stopped, go to Step 3.
+
+### Step 10.5: Adversary Batch
+
+**Skip this step if `--no-adversary` flag was passed.**
+
+After the checkpoint fires every 5 tasks (or after each parallel batch), run adversarial verification on the completed tasks from this batch:
+
+1. **Collect completed tasks:** Gather the `[x]` tasks from this batch only. Filter out `[!]` (failed) and `[ ]` (unchecked) tasks. If no `[x]` tasks in this batch, skip.
+
+2. **Load provenance fields:** Read `provenance_fields` from `.research/ARCHITECTURE.md`. The adversary only attacks claims on these fields.
+
+3. **Spawn adversary:** Spawn the `dr-adversary` subagent with this prompt:
+
+```
+Verify the claims in these completed research entries.
+
+Data files to check: {list of output file paths for the batch's [x] tasks}
+Provenance fields to verify: {provenance_fields from ARCHITECTURE.md}
+Source cache: .research/source-cache/
+Adversary schema: prompts/adversary-schema.json
+
+Write your verdicts to: data/{original-file}.adversary.json
+
+If the sidecar file already exists, read it first and append your new verdicts to the existing array.
+
+You have 5 minutes. Focus on provenance_fields claims only.
+```
+
+Use the Agent tool with `subagent_type: "dr-adversary"`.
+
+**Sequential mode:** Adversary blocks (runs synchronously before next research task). ~4% time overhead.
+**Parallel mode:** Adversary runs in the background (non-blocking) using `run_in_background: true`. Results merge into sidecar files when ready. Near-zero overhead because researchers and adversary write to different files (researchers → `data/*.json`, adversary → `data/*.adversary.json`).
+
+4. **Validate adversary output:** After the adversary completes, validate its output against `prompts/adversary-schema.json`:
+   - If verdict is `refuted` or `weakened` and `adversary_evidence` is empty or missing → downgrade verdict to `unverifiable`
+   - If verdict is `weakened` and `confidence_delta` is null → set `confidence_delta` to `-0.3`
+   - If output fails schema validation entirely → claims stay `pending`, log warning to CHANGELOG: `[timestamp] | adversary_batch | FAIL | [batch_task_ids] | Adversary output malformed, claims unverified`
+
+5. **Calculate survival scores** for each claim using the adversary verdicts:
+   - `confirmed`: `survival_score = confidence_score` (unchanged)
+   - `weakened`: `survival_score = max(0.0, confidence_score + confidence_delta)`
+   - `refuted`: `survival_score = 0.0`
+   - `unverifiable`: `survival_score = confidence_score * 0.5`
+
+6. **Log batch summary** (3 lines to stdout):
+```
+Adversary batch {N}: {X} claims tested | confirmed: {A}, weakened: {B}, refuted: {C}, unverifiable: {D}
+lowest: "{claim_text}" (score: {0.XX})
+```
+
+7. **Error handling:**
+   - Adversary timeout (>5 min): claims stay `pending`, non-blocking warning in CHANGELOG
+   - Adversary crash: claims stay `pending`, mark batch as failed in CHANGELOG, continue to next research task
+   - Sidecar file write failure: log warning, adversary results lost for this batch but run continues
 
 ### Step 11: Phase Complete
 
