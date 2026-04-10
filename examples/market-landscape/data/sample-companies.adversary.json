@@ -1,0 +1,72 @@
+[
+  {
+    "claim_text": "Artisan AI raised $25M",
+    "field_name": "funding_total",
+    "task_id": "P1.01",
+    "verdict": "refuted",
+    "counter_evidence": "Crunchbase shows total funding of $12M, not $25M. The $25M figure does not appear in any funding announcement.",
+    "adversary_evidence": "Source states: 'Artisan AI has raised a total of $12M in funding over 2 rounds. Their latest funding was raised on Jun 15, 2024 from a Series A round.' — contradicts claim of $25M total funding",
+    "confidence_delta": null,
+    "verification_mode": "source_verification"
+  },
+  {
+    "claim_text": "Artisan AI was founded in 2023",
+    "field_name": "founded_year",
+    "task_id": "P1.01",
+    "verdict": "confirmed",
+    "counter_evidence": null,
+    "adversary_evidence": null,
+    "confidence_delta": null,
+    "verification_mode": "source_verification"
+  },
+  {
+    "claim_text": "Artisan AI has approximately 45 employees",
+    "field_name": "employee_count",
+    "task_id": "P1.01",
+    "verdict": "weakened",
+    "counter_evidence": "LinkedIn shows 30-35 employees, company about page says 'team of ~40'",
+    "adversary_evidence": "Source states: 'Meet our team of ~40 passionate builders' on artisan.co/about — discrepancy with claim of 45 employees. LinkedIn company page shows 32 associated profiles.",
+    "confidence_delta": -0.15,
+    "verification_mode": "cross_reference"
+  },
+  {
+    "claim_text": "Regie.ai total funding is between $30M and $35M",
+    "field_name": "funding_total",
+    "task_id": "P1.02",
+    "verdict": "weakened",
+    "counter_evidence": "Sources disagree on exact amount. Crunchbase says $30.4M, PitchBook says $34.5M. The CONFLICTING marker is appropriate but the range understates the disagreement.",
+    "adversary_evidence": "Source states: 'Regie.ai has raised $30.4M in 3 rounds' (Crunchbase) vs 'Total raised: $34.5M' (PitchBook) — discrepancy between sources. Researcher already flagged as CONFLICTING which is correct, but confidence should be lower given the $4M gap.",
+    "confidence_delta": -0.1,
+    "verification_mode": "contradiction_search"
+  },
+  {
+    "claim_text": "Regie.ai was founded in 2020",
+    "field_name": "founded_year",
+    "task_id": "P1.02",
+    "verdict": "confirmed",
+    "counter_evidence": null,
+    "adversary_evidence": null,
+    "confidence_delta": null,
+    "verification_mode": "source_verification"
+  },
+  {
+    "claim_text": "Orum's key investor is Andreessen Horowitz",
+    "field_name": "key_investors",
+    "task_id": "P1.03",
+    "verdict": "refuted",
+    "counter_evidence": "No evidence of Andreessen Horowitz investing in Orum. Crunchbase lists Craft Ventures, Unusual Ventures, and Floodgate as investors.",
+    "adversary_evidence": "Source states: 'Orum investors include Craft Ventures (lead), Unusual Ventures, and Floodgate Fund' per Crunchbase. No mention of Andreessen Horowitz in any funding announcement or investor page. — contradicts claim that Andreessen Horowitz is a key investor",
+    "confidence_delta": null,
+    "verification_mode": "contradiction_search"
+  },
+  {
+    "claim_text": "Orum was founded in 2018",
+    "field_name": "founded_year",
+    "task_id": "P1.03",
+    "verdict": "confirmed",
+    "counter_evidence": null,
+    "adversary_evidence": null,
+    "confidence_delta": null,
+    "verification_mode": "source_verification"
+  }
+]

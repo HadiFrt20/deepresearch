@@ -53,3 +53,10 @@
 - All other fields accept `"NOT_FOUND"` as a valid value
 - `"UNVERIFIED: {value}"` for single-source claims
 - `"CONFLICTING: {v1} vs {v2}"` when sources disagree
+
+## Provenance
+
+provenance_fields: ["funding_total", "employee_count", "founded_year"]
+
+These 3 fields get full provenance envelopes (12 fields each) with adversarial verification.
+All other factual fields get a simple `"sourced": true/false` flag.

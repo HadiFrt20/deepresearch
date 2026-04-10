@@ -7,7 +7,7 @@
     "founded_year": 2023,
     "headquarters": "San Francisco, CA",
     "employee_count": "UNVERIFIED: 45",
-    "funding_total": "$12M",
+    "funding_total": "$25M",
     "funding_stage": "Series A",
     "key_investors": ["Y Combinator", "Sequoia Scout"],
     "pricing_model": "per-seat",
@@ -21,7 +21,54 @@
       "https://techcrunch.com/2024/artisan-ai-funding"
     ],
     "status": "COMPLETE",
-    "last_updated": "2026-03-15"
+    "last_updated": "2026-03-15",
+    "provenance": {
+      "funding_total": {
+        "claim_text": "Artisan AI raised $25M",
+        "source_url": "https://www.crunchbase.com/organization/artisan-ai",
+        "extraction_method": "paraphrase",
+        "cross_ref_count": 1,
+        "cross_ref_urls": ["https://techcrunch.com/2024/artisan-ai-funding"],
+        "confidence_score": 0.7,
+        "volatility_class": "medium",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.7
+      },
+      "employee_count": {
+        "claim_text": "Artisan AI has approximately 45 employees",
+        "source_url": "https://www.linkedin.com/company/artisan-ai",
+        "extraction_method": "paraphrase",
+        "cross_ref_count": 0,
+        "cross_ref_urls": [],
+        "confidence_score": 0.5,
+        "volatility_class": "high",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.5
+      },
+      "founded_year": {
+        "claim_text": "Artisan AI was founded in 2023",
+        "source_url": "https://artisan.co/about",
+        "extraction_method": "direct_quote",
+        "cross_ref_count": 2,
+        "cross_ref_urls": ["https://www.crunchbase.com/organization/artisan-ai", "https://techcrunch.com/2024/artisan-ai-funding"],
+        "confidence_score": 0.95,
+        "volatility_class": "stable",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.95
+      },
+      "headquarters": { "sourced": true },
+      "pricing_model": { "sourced": true },
+      "differentiator": { "sourced": true },
+      "target_market": { "sourced": true },
+      "description": { "sourced": true },
+      "funding_stage": { "sourced": true }
+    }
   },
   {
     "name": "Regie.ai",
@@ -44,7 +91,54 @@
       "https://www.crunchbase.com/organization/regie-ai"
     ],
     "status": "INCOMPLETE",
-    "last_updated": "2026-03-15"
+    "last_updated": "2026-03-15",
+    "provenance": {
+      "funding_total": {
+        "claim_text": "Regie.ai total funding is between $30M and $35M",
+        "source_url": "https://www.crunchbase.com/organization/regie-ai",
+        "extraction_method": "paraphrase",
+        "cross_ref_count": 1,
+        "cross_ref_urls": ["https://regie.ai/about"],
+        "confidence_score": 0.5,
+        "volatility_class": "medium",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.5
+      },
+      "employee_count": {
+        "claim_text": "Regie.ai has between 80 and 120 employees",
+        "source_url": "https://www.linkedin.com/company/regie-ai",
+        "extraction_method": "paraphrase",
+        "cross_ref_count": 1,
+        "cross_ref_urls": ["https://regie.ai/about"],
+        "confidence_score": 0.4,
+        "volatility_class": "high",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.4
+      },
+      "founded_year": {
+        "claim_text": "Regie.ai was founded in 2020",
+        "source_url": "https://www.crunchbase.com/organization/regie-ai",
+        "extraction_method": "direct_quote",
+        "cross_ref_count": 1,
+        "cross_ref_urls": ["https://regie.ai/about"],
+        "confidence_score": 0.9,
+        "volatility_class": "stable",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.9
+      },
+      "headquarters": { "sourced": true },
+      "pricing_model": { "sourced": false },
+      "differentiator": { "sourced": false },
+      "target_market": { "sourced": true },
+      "description": { "sourced": true },
+      "funding_stage": { "sourced": true }
+    }
   },
   {
     "name": "Orum",
@@ -56,7 +150,7 @@
     "employee_count": "UNVERIFIED: 60",
     "funding_total": "UNVERIFIED: $28M",
     "funding_stage": "Series B",
-    "key_investors": ["NOT_FOUND"],
+    "key_investors": ["Andreessen Horowitz"],
     "pricing_model": "per-seat",
     "key_features": ["AI parallel dialing", "Live call coaching", "Voicemail drop", "Call analytics"],
     "target_market": "mid-market",
@@ -66,6 +160,54 @@
       "https://orum.com"
     ],
     "status": "INCOMPLETE",
-    "last_updated": "2026-03-15"
+    "last_updated": "2026-03-15",
+    "provenance": {
+      "funding_total": {
+        "claim_text": "Orum has raised $28M in total funding",
+        "source_url": "https://orum.com/about",
+        "extraction_method": "inference",
+        "cross_ref_count": 0,
+        "cross_ref_urls": [],
+        "confidence_score": 0.4,
+        "volatility_class": "medium",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.4
+      },
+      "employee_count": {
+        "claim_text": "Orum has approximately 60 employees",
+        "source_url": "https://www.linkedin.com/company/orum",
+        "extraction_method": "paraphrase",
+        "cross_ref_count": 0,
+        "cross_ref_urls": [],
+        "confidence_score": 0.5,
+        "volatility_class": "high",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.5
+      },
+      "founded_year": {
+        "claim_text": "Orum was founded in 2018",
+        "source_url": "https://orum.com/about",
+        "extraction_method": "direct_quote",
+        "cross_ref_count": 1,
+        "cross_ref_urls": ["https://www.crunchbase.com/organization/orum"],
+        "confidence_score": 0.85,
+        "volatility_class": "stable",
+        "adversary_verdict": "pending",
+        "adversary_evidence": null,
+        "verified_at": null,
+        "survival_score": 0.85
+      },
+      "headquarters": { "sourced": false },
+      "pricing_model": { "sourced": true },
+      "differentiator": { "sourced": true },
+      "target_market": { "sourced": true },
+      "description": { "sourced": true },
+      "funding_stage": { "sourced": true },
+      "key_investors": { "sourced": false }
+    }
   }
 ]
