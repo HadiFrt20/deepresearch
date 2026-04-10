@@ -5,6 +5,8 @@ description: Synthesize research findings into the final deliverable. Reads all 
 
 You are synthesizing research findings into the final deliverable.
 
+Accepts optional arguments: `/dr-report`, `/dr-report --provenance`.
+
 ## Steps
 
 ### 1. Load Context
@@ -26,6 +28,10 @@ Read every file in `data/`. For each:
 - Parse the entries
 - Note total count, completeness rate, CONFLICTING/UNVERIFIED values
 - Group by category or phase as appropriate
+
+**Merge adversary sidecar files:** Also read any `data/*.adversary.json` sidecar files. Merge adversary verdicts into the data entries by matching `task_id` and `field_name` to the provenance envelopes.
+- **Error handling:** If a sidecar file contains malformed JSON, skip it, log `"[WARNING] Skipped malformed sidecar: {filename}"`, and continue processing other files. Do not crash.
+- Update `adversary_verdict`, `adversary_evidence`, `confidence_delta`, `verified_at`, and `survival_score` in each matching provenance envelope.
 
 ### 4. Generate Report
 
@@ -63,6 +69,25 @@ Reference the data files for details.}
 {Findings from Phase 2 data.}
 
 {...repeat for each phase...}
+
+**Adversary highlights in findings:** When presenting claims in Key Findings sections:
+- Claims with `adversary_verdict: "refuted"` → mark with `[REFUTED]` and strikethrough: `~~claim text~~ [REFUTED]`
+- Claims with `adversary_verdict: "weakened"` → mark with `[WEAKENED]` and show adversary counter-evidence inline: `claim text [WEAKENED — adversary found: "counter-evidence quote"]`
+- Claims with `adversary_verdict: "confirmed"` → present normally (no special marking)
+- Claims with `adversary_verdict: "pending"` or `"unverifiable"` → present normally
+
+At the end of each Key Findings section, add a **Contested Claims** subsection listing all refuted/weakened claims with their adversary evidence:
+
+```markdown
+#### Contested Claims
+
+| Claim | Verdict | Adversary Evidence | Survival Score |
+|-------|---------|-------------------|----------------|
+| Artisan AI raised $25M | REFUTED | "Crunchbase shows $12M total funding" | 0.00 |
+| Regie.ai has 80 employees | WEAKENED | "LinkedIn shows ~120 employees" | 0.42 |
+```
+
+If no adversary sidecar files exist, skip all adversary highlights.
 
 ## Patterns and Insights
 
@@ -110,7 +135,43 @@ Based on the done condition from PROJECT.md:
 - **Opportunity scorecard:** Add a scoring matrix with weighted criteria
 - **Spreadsheet:** Additionally generate `output/data-export.json` with all entries merged and normalized
 
-### 6. Print Summary
+### 6. Provenance Export (--provenance flag)
+
+If the user passed `--provenance`:
+
+Write `output/provenance-chain.json` alongside the markdown report. This is the full epistemic audit trail.
+
+Structure:
+```json
+{
+  "generated_at": "2026-04-10T14:30:00Z",
+  "trust_score": 0.74,
+  "survival_rate": 0.87,
+  "claims": {
+    "P1.01:funding_total": {
+      "claim_text": "Artisan AI raised $12M",
+      "source_url": "https://crunchbase.com/organization/artisan-ai",
+      "extraction_method": "direct_quote",
+      "cross_ref_count": 2,
+      "cross_ref_urls": ["https://techcrunch.com/artisan-ai-funding"],
+      "confidence_score": 0.9,
+      "volatility_class": "medium",
+      "adversary_verdict": "confirmed",
+      "adversary_evidence": null,
+      "verified_at": "2026-04-10T14:32:00Z",
+      "survival_score": 0.9
+    }
+  }
+}
+```
+
+- Key format: `{task_id}:{field_name}` for easy lookup
+- Flatten all provenance envelopes from all data files + sidecar verdicts into one exportable artifact
+- `trust_score`: mean survival_score across all adversary-reviewed claims
+- `survival_rate`: (confirmed + weakened) / (confirmed + weakened + refuted)
+- If no adversary data exists, set `trust_score` and `survival_rate` to `null`
+
+### 7. Print Summary
 
 After writing the report:
 
@@ -120,9 +181,12 @@ Report written to output/final-report.md
 {word count} words, {section count} sections
 {entity count} entities across {category count} categories
 {source count} unique sources referenced
+Trust: {survival_rate}% survived | Score: {trust_score} (or "N/A" if no adversary data)
 
 The report directly answers: "{original research question}"
 ```
+
+If `--provenance` was passed, also print: `Provenance chain written to output/provenance-chain.json ({claim count} claims)`
 
 ## Error Handling
 
