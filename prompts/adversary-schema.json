@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Adversary Verification Output",
+  "description": "Schema for dr-adversary agent output. Each object is a verdict on a single claim from a researcher's provenance envelope.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["claim_text", "field_name", "task_id", "verdict"],
+    "properties": {
+      "claim_text": {
+        "type": "string",
+        "description": "The exact claim text from the provenance envelope being verified"
+      },
+      "field_name": {
+        "type": "string",
+        "description": "The field name this claim is about (e.g., funding_total, employee_count)"
+      },
+      "task_id": {
+        "type": "string",
+        "description": "The task ID from todo.md that produced this entry"
+      },
+      "verdict": {
+        "type": "string",
+        "enum": ["confirmed", "refuted", "weakened", "unverifiable"],
+        "description": "The adversary's verdict on this claim"
+      },
+      "counter_evidence": {
+        "type": ["string", "null"],
+        "description": "Description of contradicting evidence found, or null if none"
+      },
+      "adversary_evidence": {
+        "type": ["string", "null"],
+        "description": "Direct quote from source. REQUIRED when verdict is refuted or weakened. Must contain quoted text from the source that contradicts or fails to support the claim."
+      },
+      "confidence_delta": {
+        "type": ["number", "null"],
+        "description": "How much to adjust the confidence score. REQUIRED when verdict is weakened (must be negative). Null for other verdicts."
+      },
+      "verification_mode": {
+        "type": "string",
+        "enum": ["source_verification", "contradiction_search", "cross_reference", "temporal_check"],
+        "description": "The primary verification mode that determined this verdict"
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": { "verdict": { "const": "refuted" } }
+        },
+        "then": {
+          "required": ["adversary_evidence"],
+          "properties": {
+            "adversary_evidence": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": { "verdict": { "const": "weakened" } }
+        },
+        "then": {
+          "required": ["adversary_evidence", "confidence_delta"],
+          "properties": {
+            "adversary_evidence": {
+              "type": "string",
+              "minLength": 1
+            },
+            "confidence_delta": {
+              "type": "number",
+              "exclusiveMaximum": 0
+            }
+          }
+        }
+      }
+    ]
+  }
+}
