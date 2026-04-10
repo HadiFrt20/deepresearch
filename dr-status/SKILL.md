@@ -33,7 +33,28 @@ For each file in `data/`:
 
 Show the last 10 entries from `.research/CHANGELOG.md`.
 
-### 5. Dashboard Output
+### 5. Trust Score
+
+Read all sidecar files (`data/*.adversary.json`). For each sidecar file:
+- Parse the JSON array of adversary verdicts
+- **Error handling:** If a sidecar file contains malformed JSON, skip it, note `"[WARNING] Malformed sidecar: {filename}"` in the dashboard output, and continue processing other files
+- Count verdicts by type: confirmed, refuted, weakened, unverifiable, and count claims still `pending` (claims with provenance but no matching sidecar verdict)
+
+Calculate:
+- `adversary_survival_rate`: `(confirmed + weakened) / (confirmed + weakened + refuted)`. Exclude pending and unverifiable from denominator.
+- `mean_survival_score`: average `survival_score` across all adversary-reviewed claims (those with verdict != pending)
+- `pending_count`: claims with provenance envelopes but no adversary verdict yet
+- `total_reviewed`: confirmed + weakened + refuted + unverifiable
+
+Find the top 5 most-attacked entities by count of `refuted` + `weakened` verdicts. For each, find the claim with the lowest `survival_score`.
+
+**Display logic:**
+- If no sidecar files exist AND provenance exists in data files → show `Trust: -- (adversary not yet run)`
+- If no sidecar files exist AND no provenance exists → show nothing (trust section omitted)
+- If `--no-adversary` was used (detected by: provenance exists in data files but zero sidecar files AND the CHANGELOG contains an entry with `Adversary: disabled`) → show `Adversary: disabled`
+- If sidecar files exist → show full trust dashboard
+
+### 6. Dashboard Output
 
 Print a formatted dashboard:
 
@@ -59,12 +80,24 @@ data/companies-p2.json  |       5 | 75%
 
 Fields below 70%: funding_amount (45%), employee_count (62%)
 
+## Trust Score
+
+Trust: 87% survived | Score: 0.74
+Adversary: 45/52 claims reviewed (7 pending)
+
+## Most Attacked
+
+Entity           | Refuted | Weakened | Lowest claim
+-----------------|---------|----------|-----------------------------
+Regie.ai         |       2 |        1 | "funding: $30M" (0.12)
+Orum             |       0 |        2 | "employee_count: 60" (0.42)
+
 ## Recent Activity
 
 [last 10 changelog entries]
 ```
 
-### 6. Suggest Next Action
+### 7. Suggest Next Action
 
 Based on the state:
 - Unchecked tasks remain → "Run `/dr-run` to continue execution."
