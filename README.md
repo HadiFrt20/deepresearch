@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/architecture.png" alt="deepresearch architecture" width="800">
-</p>
-
 <h1 align="center">deepresearch</h1>
 
 <p align="center">
@@ -69,6 +65,10 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 ## How it works
 
 ### Architecture
+
+<p align="center">
+  <img src="docs/architecture.png" alt="deepresearch architecture" width="800">
+</p>
 
 deepresearch has four layers that work together:
 
