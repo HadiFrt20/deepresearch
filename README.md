@@ -67,7 +67,7 @@ That's it. No dependencies. No build step. Open a new Claude Code session and th
 ### Architecture
 
 <p align="center">
-  <img src="docs/architecture.png" alt="deepresearch architecture" width="800">
+  <img src="docs/architecture.png?v=2" alt="deepresearch architecture" width="800">
 </p>
 
 deepresearch has four layers that work together:
